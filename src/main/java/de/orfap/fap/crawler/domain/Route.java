@@ -29,18 +29,18 @@ public class Route extends ResourceSupport{
     int flightCount;
 
     @NotNull
-    Airline airline;
+    String airline;
 
     @NotNull
-    Airport source;
+    String source;
 
     @NotNull
-    Airport destination;
+    String destination;
 
     public Route() {
     }
 
-    public Route(Date date, int delays, int cancelled, int passengerCount, int flightCount, Airline airline, Airport source, Airport destination) {
+    public Route(Date date, int delays, int cancelled, int passengerCount, int flightCount, String airline, String source, String destination) {
         this.date = date;
         this.delays = delays;
         this.cancelled = cancelled;
@@ -91,27 +91,27 @@ public class Route extends ResourceSupport{
         this.flightCount = flightCount;
     }
 
-    public Airline getAirline() {
+    public String getAirline() {
         return airline;
     }
 
-    public void setAirline(Airline airline) {
+    public void setAirline(String airline) {
         this.airline = airline;
     }
 
-    public Airport getSource() {
+    public String getSource() {
         return source;
     }
 
-    public void setSource(Airport source) {
+    public void setSource(String source) {
         this.source = source;
     }
 
-    public Airport getDestination() {
+    public String getDestination() {
         return destination;
     }
 
-    public void setDestination(Airport destination) {
+    public void setDestination(String destination) {
         this.destination = destination;
     }
 

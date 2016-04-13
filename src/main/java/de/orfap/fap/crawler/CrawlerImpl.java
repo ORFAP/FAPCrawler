@@ -20,6 +20,7 @@ public class CrawlerImpl implements Crawler {
 
     @Override
     public void getHTML(String urlToRead) throws Exception{
+
         URL url = new URL(urlToRead);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");

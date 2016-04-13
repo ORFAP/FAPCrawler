@@ -37,6 +37,7 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-hateoas')
     compile('org.springframework.boot:spring-boot-starter-web')
 	compile 'org.springframework.hateoas:spring-hateoas'
+    compile 'com.jayway.jsonpath:json-path'
 }
 
 
