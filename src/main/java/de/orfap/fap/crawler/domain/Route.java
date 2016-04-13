@@ -1,6 +1,5 @@
-package de.orfap.fap.crawler.local;
+package de.orfap.fap.crawler.domain;
 
-import javax.persistence.ManyToOne;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
@@ -29,15 +28,12 @@ public class Route extends ResourceSupport{
     @Min(0)
     int flightCount;
 
-    @ManyToOne
     @NotNull
     Airline airline;
 
-    @ManyToOne
     @NotNull
     Airport source;
 
-    @ManyToOne
     @NotNull
     Airport destination;
 

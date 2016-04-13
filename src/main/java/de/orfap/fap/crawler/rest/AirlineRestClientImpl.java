@@ -1,27 +1,40 @@
 package de.orfap.fap.crawler.rest;
 
-import de.orfap.fap.crawler.local.Airline;
+import de.orfap.fap.crawler.domain.Airline;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.client.Traverson;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 /**
  * Created by Arne on 13.04.2016.
  */
+@Service
 public class AirlineRestClientImpl implements AirlineRestClient{
+
+    public static final String FIND_FULL_TEXT_FUZZY = "findFullTextFuzzy";
+
+    public static final String SEARCH = "search";
+
+    /*private final Traverson traverson;
+
+    private final RestTemplate restTemplate;*/
+
+    /*@Autowired
+    public AirlineRestClientImpl(RestTemplate restTemplate, final URI basePath) {
+        this.restTemplate = restTemplate;
+        traverson = new Traverson(basePath, MediaTypes.HAL_JSON);
+        traverson.setRestOperations(restTemplate);
+    }*/
 
     @Override
     public List<Airline> findAll() {
@@ -55,11 +68,12 @@ public class AirlineRestClientImpl implements AirlineRestClient{
 
     @Override
     public Airline create(Airline airline) {
-        URI uri = URI.create(
-                traverson.follow(AIRLINES).asLink().getHref());
-        AirlineDTO airlineDTO = airlineAssembler.toResource(airline).getContent();
-        AirlineResource resource = restTemplate.exchange(uri, HttpMethod.POST, new HttpEntity<>(airlineDTO), ViewComponent_Resource.class).getBody();
-        return airlineAssembler.toBean(resource);
+        /*URI uri = URI.create(
+                traverson.follow(AIRLINES).asLink().getHref());*/
+
+
+//       restTemplate.exchange(uri, HttpMethod.POST, new HttpEntity<>(airline));
+        return null;
 
 
 

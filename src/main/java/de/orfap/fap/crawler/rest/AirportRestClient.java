@@ -1,6 +1,6 @@
 package de.orfap.fap.crawler.rest;
 
-import de.orfap.fap.crawler.local.Airport;
+import de.orfap.fap.crawler.domain.Airport;
 import org.springframework.hateoas.Link;
 
 import java.util.Collection;

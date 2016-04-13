@@ -1,4 +1,4 @@
-package de.orfap.fap.crawler.local;
+package de.orfap.fap.crawler.domain;
 
 import org.springframework.hateoas.ResourceSupport;
 
@@ -8,7 +8,7 @@ import javax.validation.constraints.Size;
 /**
  * Created by Arne on 13.04.2016.
  */
-public class Airline extends ResourceSupport {
+public class Airline {
 
     @NotNull
     @Size(min = 3)
