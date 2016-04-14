@@ -6,6 +6,9 @@ package de.orfap.fap.crawler;
 public interface Crawler {
     void getAirlines(String urlToRead) throws Exception;
 
-    void sendAirlineToBackend(String tablename, String s);
+    void getAirports(String urlToRead) throws Exception;
 
+    void sendAirlineToBackend(String id, String name);
+
+    void sendAirportToBackend(String id, String name);
 }
