@@ -33,11 +33,12 @@ repositories {
 dependencies {
 	compile('org.springframework.boot:spring-boot-starter')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
-    //Spring
     compile('org.springframework.boot:spring-boot-starter-hateoas')
     compile('org.springframework.boot:spring-boot-starter-web')
 	compile 'org.springframework.hateoas:spring-hateoas'
     compile 'com.jayway.jsonpath:json-path'
+	compile 'com.netflix.feign:feign-core:8.16.0'
+    compile 'com.netflix.feign:feign-jackson:8.0.0'
 }
 
 

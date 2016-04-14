@@ -3,6 +3,13 @@ package de.orfap.fap.crawler.rest;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.orfap.fap.crawler.domain.Airport;
+import de.orfap.fap.crawler.feign.AirlineClient;
+import de.orfap.fap.crawler.feign.AirportClient;
+import feign.Feign;
+import feign.jackson.JacksonDecoder;
+import feign.jackson.JacksonEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.hateoas.client.Traverson;
@@ -30,24 +37,26 @@ public class AirportRestClientImpl implements AirportRestClient{
 
     public static final String SEARCH = "search";
 
-    private final Traverson traverson;
-
-    private final RestTemplate restTemplate;
+    AirportClient backend;
 
 
-    public AirportRestClientImpl() {
+    @Autowired
+    public AirportRestClientImpl(@Value("${fap.backend.basePath}")
+                                         String basePath) {
 
+        backend = Feign.builder()
+                .encoder(new JacksonEncoder())
+                .decoder(new JacksonDecoder())
+                .target(AirportClient.class, basePath);
 
+        /*
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         mapper.registerModule(new Jackson2HalModule());
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setSupportedMediaTypes(MediaType.parseMediaTypes("application/hal+json"));
-        converter.setObjectMapper(mapper);
-        this.restTemplate = new RestTemplate(Arrays.asList(converter));
-        traverson = new Traverson(URI.create("http://localhost:8080/"), MediaTypes.HAL_JSON);
-        traverson.setRestOperations(restTemplate);
+        converter.setObjectMapper(mapper);*/
     }
 
     @Override
@@ -82,14 +91,7 @@ public class AirportRestClientImpl implements AirportRestClient{
 
     @Override
     public Airport create(Airport airport) {
-        restTemplate.exchange(URI.create(
-                "http://localhost:8080/"+AIRPORTS),
-                HttpMethod.POST,new HttpEntity<Airport>(airport),
-                Object.class);
-        return null;
-
-
-
+       return backend.create(airport);
     }
 
     @Override

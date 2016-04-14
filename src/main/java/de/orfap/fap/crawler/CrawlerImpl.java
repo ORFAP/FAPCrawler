@@ -26,6 +26,8 @@ public class CrawlerImpl implements Crawler {
     @Autowired
     private AirportRestClient airportRestClient;
 
+    ArrayList<Airport> airports = new ArrayList();
+
     @Override
     public void getAirlines(String urlToRead) throws Exception{
 
@@ -42,18 +44,17 @@ public class CrawlerImpl implements Crawler {
 
     @Override
     public void getAirports(String urlToRead) throws Exception {
-        ArrayList<Airport> airports = new ArrayList();
         BufferedReader rd = getReader(urlToRead);
         String line;
         while ((line = rd.readLine()) != null) {
             if (line.startsWith("\"")) {
+                //Kann noch geiler gemacht werden
                 String[] parts = line.split(",");
                 String id = parts[0].replaceAll("\"","").trim();
                 parts[0] = "";
                 String name = String.join("",parts).replaceAll("\"","").trim();
                 Airport next = new Airport(name,id);
                 airports.add(next);
-                System.out.println(next.getName());
                 if(next.getName().contains("Germany")){
                     sendAirportToBackend(next.getId(),next.getName());
                 }
