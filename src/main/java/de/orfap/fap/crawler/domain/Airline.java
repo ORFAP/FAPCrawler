@@ -14,10 +14,14 @@ public class Airline {
     @Size(min = 3)
     String name;
 
+    @NotNull
+    String id;
+
     public Airline() {}
 
-    public Airline(String name) {
+    public Airline(String name, String id) {
         this.name = name;
+        this.id = id;
     }
 
     public String getName() {
@@ -26,6 +30,14 @@ public class Airline {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     @Override
@@ -37,6 +49,8 @@ public class Airline {
         Airline other = (Airline) o;
         if(!this.getName().equals(other.getName()))
             return false;
+        if(!this.getId().equals(other.getId()))
+            return false;
         return true;
     }
 
@@ -44,6 +58,7 @@ public class Airline {
     public String toString() {
         return "Airline{" +
                 "name='" + name + '\'' +
+                ", id='" + id + '\'' +
                 '}';
     }
 }

@@ -19,7 +19,7 @@ public class CrawlerImpl implements Crawler {
     private AirlineRestClient airlineRestClient;
 
     @Override
-    public void getHTML(String urlToRead) throws Exception{
+    public void getAirlines(String urlToRead) throws Exception{
 
         URL url = new URL(urlToRead);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -28,14 +28,15 @@ public class CrawlerImpl implements Crawler {
         String line;
         while ((line = rd.readLine()) != null) {
             if(line.startsWith("\"")) {
-                sendToBackend("Airlines",line.split(",")[1].replaceAll("(\"|\\([1-9]\\))","").trim());
+                String[] parts = line.split(",");
+                sendAirlineToBackend(parts[0].replaceAll("\"",""),parts[1].replaceAll("(\"|\\([1-9]\\))","").trim());
             }
         }
         rd.close();
     }
 
     @Override
-    public void sendToBackend(String tablename, String s) {
-        airlineRestClient.create(new Airline(s));
+    public void sendAirlineToBackend(String id, String s) {
+        airlineRestClient.create(new Airline(s,id));
     }
 }

@@ -21,6 +21,6 @@ public class FapCrawlerApplication implements CommandLineRunner{
     @Override
     public void run(String... args) throws Exception {
 //        System.out.println("Hello World");
-        crawler.getHTML("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_UNIQUE_CARRIERS");
+        crawler.getAirlines("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_UNIQUE_CARRIERS");
     }
 }

@@ -13,10 +13,14 @@ public class Airport {
     @Size(min = 3)
     String name;
 
+    @NotNull
+    String id;
+
     public Airport() {}
 
-    public Airport(String name) {
+    public Airport(String name, String id) {
         this.name = name;
+        this.id = id;
     }
 
     public String getName() {
@@ -25,6 +29,14 @@ public class Airport {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     @Override
@@ -36,6 +48,8 @@ public class Airport {
         Airport other = (Airport) o;
         if(!this.getName().equals(other.getName()))
             return false;
+        if(!this.getId().equals(other.getId()))
+            return false;
         return true;
     }
 
@@ -43,6 +57,7 @@ public class Airport {
     public String toString() {
         return "Airport{" +
                 "name='" + name + '\'' +
+                ", id='" + id + '\'' +
                 '}';
     }
 }
