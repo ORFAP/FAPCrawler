@@ -2,6 +2,7 @@ package de.orfap.fap.crawler;
 
 import de.orfap.fap.crawler.domain.Airline;
 import de.orfap.fap.crawler.domain.Airport;
+import de.orfap.fap.crawler.feign.AirlineClient;
 import de.orfap.fap.crawler.rest.AirlineRestClient;
 import de.orfap.fap.crawler.rest.AirportRestClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class CrawlerImpl implements Crawler {
 
     @Autowired
     private AirportRestClient airportRestClient;
+
+//    @Autowired
+//    AirlineClient airlineClient;
 
     ArrayList<Airport> airports = new ArrayList();
 
@@ -70,7 +74,8 @@ public class CrawlerImpl implements Crawler {
 
     @Override
     public void sendAirlineToBackend(String id, String name) {
-        airlineRestClient.create(new Airline(name,id));
+//        airlineClient.create(new Airline(name,id));
+//        airlineRestClient.create(new Airline(name,id));
     }
 
     private BufferedReader getReader(String urlToRead) throws IOException {
