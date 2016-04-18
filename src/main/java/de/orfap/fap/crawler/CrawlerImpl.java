@@ -1,10 +1,10 @@
 package de.orfap.fap.crawler;
 
 import de.orfap.fap.crawler.domain.Airline;
-import de.orfap.fap.crawler.domain.Airport;
 import de.orfap.fap.crawler.feign.AirlineClient;
+import de.orfap.fap.crawler.domain.City;
 import de.orfap.fap.crawler.rest.AirlineRestClient;
-import de.orfap.fap.crawler.rest.AirportRestClient;
+import de.orfap.fap.crawler.rest.CityRestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +12,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -25,12 +24,9 @@ public class CrawlerImpl implements Crawler {
     private AirlineRestClient airlineRestClient;
 
     @Autowired
-    private AirportRestClient airportRestClient;
+    private CityRestClient cityRestClient;
 
-//    @Autowired
-//    AirlineClient airlineClient;
-
-    ArrayList<Airport> airports = new ArrayList();
+    ArrayList<City> cities = new ArrayList();
 
     @Override
     public void getAirlines(String urlToRead) throws Exception{
@@ -47,7 +43,7 @@ public class CrawlerImpl implements Crawler {
     }
 
     @Override
-    public void getAirports(String urlToRead) throws Exception {
+    public void getCities(String urlToRead) throws Exception {
         BufferedReader rd = getReader(urlToRead);
         String line;
         while ((line = rd.readLine()) != null) {
@@ -57,10 +53,10 @@ public class CrawlerImpl implements Crawler {
                 String id = parts[0].replaceAll("\"","").trim();
                 parts[0] = "";
                 String name = String.join("",parts).replaceAll("\"","").trim();
-                Airport next = new Airport(name,id);
-                airports.add(next);
+                City next = new City(name,id);
+                cities.add(next);
                 if(next.getName().contains("Germany")){
-                    sendAirportToBackend(next.getId(),next.getName());
+                    sendCityToBackend(next.getId(),next.getName());
                 }
             }
         }
@@ -68,8 +64,8 @@ public class CrawlerImpl implements Crawler {
     }
 
     @Override
-    public void sendAirportToBackend(String id, String name) {
-        airportRestClient.create(new Airport(name,id));
+    public void sendCityToBackend(String id, String name) {
+        cityRestClient.create(new City(name,id));
     }
 
     @Override

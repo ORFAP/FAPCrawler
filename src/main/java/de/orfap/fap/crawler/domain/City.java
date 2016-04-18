@@ -2,12 +2,11 @@ package de.orfap.fap.crawler.domain;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import org.springframework.hateoas.ResourceSupport;
 
 /**
  * Created by Arne on 13.04.2016.
  */
-public class Airport {
+public class City {
 
     @NotNull
     @Size(min = 3)
@@ -16,9 +15,9 @@ public class Airport {
     @NotNull
     String id;
 
-    public Airport() {}
+    public City() {}
 
-    public Airport(String name, String id) {
+    public City(String name, String id) {
         this.name = name;
         this.id = id;
     }
@@ -45,7 +44,7 @@ public class Airport {
             return true;
         if(this.getClass() != o.getClass())
             return false;
-        Airport other = (Airport) o;
+        City other = (City) o;
         if(!this.getName().equals(other.getName()))
             return false;
         if(!this.getId().equals(other.getId()))
@@ -55,7 +54,7 @@ public class Airport {
 
     @Override
     public String toString() {
-        return "Airport{" +
+        return "City{" +
                 "name='" + name + '\'' +
                 ", id='" + id + '\'' +
                 '}';
