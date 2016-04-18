@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.orfap.fap.crawler.domain.Airline;
 import de.orfap.fap.crawler.feign.AirlineClient;
 import feign.Feign;
-import feign.jackson.JacksonDecoder;
-import feign.jackson.JacksonEncoder;
+//import feign.jackson.JacksonDecoder;
+//import feign.jackson.JacksonEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.Link;
@@ -41,10 +41,10 @@ public class AirlineRestClientImpl implements AirlineRestClient{
     public AirlineRestClientImpl(@Value("${fap.backend.basePath}")
                                          String basePath) {
 
-        backend = Feign.builder()
-                .encoder(new JacksonEncoder())
-                .decoder(new JacksonDecoder())
-                .target(AirlineClient.class, basePath);
+//        backend = Feign.builder()
+//                .encoder(new JacksonEncoder())
+//                .decoder(new JacksonDecoder())
+//                .target(AirlineClient.class, basePath);
 
         /*
         ObjectMapper mapper = new ObjectMapper();

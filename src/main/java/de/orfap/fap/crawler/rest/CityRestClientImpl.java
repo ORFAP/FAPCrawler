@@ -3,8 +3,8 @@ package de.orfap.fap.crawler.rest;
 import de.orfap.fap.crawler.domain.City;
 import de.orfap.fap.crawler.feign.CityClient;
 import feign.Feign;
-import feign.jackson.JacksonDecoder;
-import feign.jackson.JacksonEncoder;
+//import feign.jackson.JacksonDecoder;
+//import feign.jackson.JacksonEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.Link;
@@ -31,10 +31,10 @@ public class CityRestClientImpl implements CityRestClient {
     public CityRestClientImpl(@Value("${fap.backend.basePath}")
                                          String basePath) {
 
-        backend = Feign.builder()
-                .encoder(new JacksonEncoder())
-                .decoder(new JacksonDecoder())
-                .target(CityClient.class, basePath);
+//        backend = Feign.builder()
+//                .encoder(new JacksonEncoder())
+//                .decoder(new JacksonDecoder())
+//                .target(CityClient.class, basePath);
 
         /*
         ObjectMapper mapper = new ObjectMapper();
