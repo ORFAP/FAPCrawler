@@ -4,7 +4,7 @@ import de.orfap.fap.crawler.domain.Airline;
 import de.orfap.fap.crawler.feign.AirlineClient;
 import feign.Headers;
 import feign.RequestLine;
-import javax.inject.Qualifier;
+//import javax.inject.Qualifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -34,11 +34,11 @@ public class FapCrawlerApplication implements CommandLineRunner{
         crawler.getCities("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRPORT_ID");
     }
 
-    /*@FeignClient("store")
+    @FeignClient("store")
     interface MyClient{
         @Headers("Content-Type: application/json")
         @RequestLine("POST /airlines/")
         Airline create(Airline airline);
 
-    }*/
+    }
 }

@@ -37,8 +37,8 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-web')
 	compile 'org.springframework.hateoas:spring-hateoas'
     compile 'com.jayway.jsonpath:json-path'
-	compile 'com.netflix.feign:feign-core:8.16.0'
-    compile 'com.netflix.feign:feign-jackson:8.0.0'
+//	compile 'com.netflix.feign:feign-core:8.16.0'
+//    compile 'com.netflix.feign:feign-jackson:8.0.0'
 //    compile 'com.netflix.feign:feign-core:8.16.0'
 	compile 'com.netflix.feign:feign-slf4j:8.16.0'
 	compile 'org.springframework.cloud:spring-cloud-netflix-core:1.0.0.RELEASE'
