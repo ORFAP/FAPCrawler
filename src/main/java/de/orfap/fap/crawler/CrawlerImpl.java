@@ -1,11 +1,10 @@
 package de.orfap.fap.crawler;
 
 import de.orfap.fap.crawler.domain.Airline;
-import de.orfap.fap.crawler.feign.AirlineClient;
 import de.orfap.fap.crawler.domain.City;
-import de.orfap.fap.crawler.rest.AirlineRestClient;
-import de.orfap.fap.crawler.rest.CityRestClient;
+import de.orfap.fap.crawler.feign.AirlineClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.Resource;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -14,6 +13,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Arne on 13.04.2016.
@@ -21,16 +22,16 @@ import java.util.ArrayList;
 @Service
 public class CrawlerImpl implements Crawler {
     @Autowired
-    private AirlineRestClient airlineRestClient;
+    private AirlineClient airlineClient;
 
-    @Autowired
-    private CityRestClient cityRestClient;
+    /*@Autowired
+    private CityClient cityClient;*/
 
     ArrayList<City> cities = new ArrayList();
 
     @Override
     public void getAirlines(String urlToRead) throws Exception{
-
+        System.out.println("STARTING CREATION");
         BufferedReader rd = getReader(urlToRead);
         String line;
         while ((line = rd.readLine()) != null) {
@@ -40,6 +41,15 @@ public class CrawlerImpl implements Crawler {
             }
         }
         rd.close();
+
+        System.out.println("CREATION DONE");
+        List<Airline> resources = airlineClient.findAll()
+                .getContent().stream()
+                .map(Resource::getContent)
+                .collect(Collectors.toList());
+
+        System.out.println(resources);
+
     }
 
     @Override
@@ -65,13 +75,12 @@ public class CrawlerImpl implements Crawler {
 
     @Override
     public void sendCityToBackend(String id, String name) {
-        cityRestClient.create(new City(name,id));
+//        cityClient.create(new City(name,id));
     }
 
     @Override
     public void sendAirlineToBackend(String id, String name) {
-//        airlineClient.create(new Airline(name,id));
-//        airlineRestClient.create(new Airline(name,id));
+        airlineClient.create(new Airline(name,id));
     }
 
     private BufferedReader getReader(String urlToRead) throws IOException {

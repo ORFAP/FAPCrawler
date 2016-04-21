@@ -29,16 +29,7 @@ public class FapCrawlerApplication implements CommandLineRunner{
 
     @Override
     public void run(String... args) throws Exception {
-//        client.create(new Airline("Hallo","Vögelein"));
         crawler.getAirlines("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_UNIQUE_CARRIERS");
-        crawler.getCities("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRPORT_ID");
-    }
-
-    @FeignClient("store")
-    interface MyClient{
-        @Headers("Content-Type: application/json")
-        @RequestLine("POST /airlines/")
-        Airline create(Airline airline);
-
+//        crawler.getCities("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRPORT_ID");
     }
 }

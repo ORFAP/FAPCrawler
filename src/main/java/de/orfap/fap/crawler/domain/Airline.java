@@ -1,7 +1,5 @@
 package de.orfap.fap.crawler.domain;
 
-import org.springframework.hateoas.ResourceSupport;
-
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -10,11 +8,8 @@ import javax.validation.constraints.Size;
  */
 public class Airline {
 
-    @NotNull
-    @Size(min = 3)
     String name;
 
-    @NotNull
     String id;
 
     public Airline() {}
