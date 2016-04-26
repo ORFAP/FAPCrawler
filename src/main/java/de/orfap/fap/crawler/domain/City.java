@@ -1,18 +1,12 @@
 package de.orfap.fap.crawler.domain;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 /**
  * Created by Arne on 13.04.2016.
  */
 public class City {
 
-    @NotNull
-    @Size(min = 3)
     String name;
 
-    @NotNull
     String id;
 
     public City() {}

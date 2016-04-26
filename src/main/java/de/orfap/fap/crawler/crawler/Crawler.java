@@ -1,4 +1,4 @@
-package de.orfap.fap.crawler;
+package de.orfap.fap.crawler.crawler;
 
 /**
  * Created by Arne on 13.04.2016.
