@@ -3,6 +3,7 @@ package de.orfap.fap.crawler.crawler;
 import de.orfap.fap.crawler.domain.Airline;
 import de.orfap.fap.crawler.domain.City;
 import de.orfap.fap.crawler.feign.AirlineClient;
+import de.orfap.fap.crawler.feign.CityClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resource;
 import org.springframework.stereotype.Service;
@@ -24,14 +25,14 @@ public class CrawlerImpl implements Crawler {
   @Autowired
   private AirlineClient airlineClient;
 
-  //@Autowired
-  //private CityClient cityClient;
+  @Autowired
+  private CityClient cityClient;
 
   ArrayList<City> cities = new ArrayList();
 
   @Override
   public void getAirlines(String urlToRead) throws Exception {
-    System.out.println("STARTING CREATION");
+    System.out.println("STARTING CREATION AIRLINES");
     BufferedReader rd = getReader(urlToRead);
     String line;
     while ((line = rd.readLine()) != null) {
@@ -54,6 +55,7 @@ public class CrawlerImpl implements Crawler {
 
   @Override
   public void getCities(String urlToRead) throws Exception {
+    System.out.println("STARTING CREATION CITIES");
     BufferedReader rd = getReader(urlToRead);
     String line;
     while ((line = rd.readLine()) != null) {
@@ -71,11 +73,19 @@ public class CrawlerImpl implements Crawler {
       }
     }
     rd.close();
+
+    System.out.println("CREATION DONE");
+    List<City> resources = cityClient.findAll()
+        .getContent().stream()
+        .map(Resource::getContent)
+        .collect(Collectors.toList());
+
+    System.out.println(resources);
   }
 
   @Override
   public void sendCityToBackend(String id, String name) {
-        //cityClient.create(new City(name,id));
+    cityClient.create(new City(name,id));
   }
 
   @Override
