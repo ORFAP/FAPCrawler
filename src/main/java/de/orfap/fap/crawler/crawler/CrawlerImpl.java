@@ -10,16 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -80,7 +77,7 @@ public class CrawlerImpl implements Crawler {
                 String name = String.join("", parts).replaceAll("\"", "").trim();
                 City next = new City(name, id);
                 //Checks if City lies in the USA
-                if (parts.length==3&&parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]")) {
+                if (parts.length == 3 && parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]")) {
                     cities.add(sendCityToBackend(next));
                 }
             }
@@ -99,9 +96,9 @@ public class CrawlerImpl implements Crawler {
     public void getRoutes(String urlToRead) throws Exception {
         BufferedReader rd = getReader(urlToRead, "POST");
         String line;
-        while ((line = rd.readLine()) != null) {
-//            System.out.println(line);
-        }
+/*        while ((line = rd.readLine()) != null) {
+            System.out.println(line);
+        }*/
         rd.close();
 
         /*Route route = new Route();
@@ -128,139 +125,154 @@ public class CrawlerImpl implements Crawler {
     }
 
     private BufferedReader getReader(String urlToRead, String method) throws IOException {
+        String postHTTPform = setReqProp();
         URL url = new URL(urlToRead);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod(method);
-        if (method.equals("POST")){
+        if (method.equals("POST")) {
             conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-            conn.setRequestProperty("Referer", "http://transtats.bts.gov/DL_SelectFields.asp?Table_ID=311\\r\\n");
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded\\r\\n");
-            conn.setRequestProperty("Content-Length","2194\\r\\n");
+            conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+            conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
+            conn.setRequestProperty("Connection", "keep-alive");
+            conn.setRequestProperty("Referer", "http://transtats.bts.gov/DL_SelectFields.asp?Table_ID=311");
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            conn.setRequestProperty("Content-Length", "2194");
             conn.setDoOutput(true);
-            setReqProp(conn);
             DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
-            wr.writeBytes("/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0 HTTP/1.1\\r\\n");
+            //wr.writeBytes("/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0 HTTP/1.1");
+            wr.writeBytes(postHTTPform);
             wr.flush();
             wr.close();
             int responseCode = conn.getResponseCode();
             System.out.println("Responsecode: " + responseCode);
+            for (Map.Entry<String, List<String>> header : conn.getHeaderFields().entrySet()) {
+                System.out.println(header.getKey() + "=" + header.getValue());
+            }
         }
         return new BufferedReader(new InputStreamReader(conn.getInputStream()));
     }
 
-    private void setReqProp(HttpURLConnection conn){
-        conn.setRequestProperty("UserTableName","T_100_Domestic_Segment__All_Carriers");
-        conn.setRequestProperty("DBShortName","");
-        conn.setRequestProperty("RawDataTable","T_T100D_SEGMENT_ALL_CARRIER");
-        conn.setRequestProperty("sqlstr"," SELECT DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH FROM T_T100D_SEGMENT_ALL_CARRIER WHERE YEAR=2015");
-        conn.setRequestProperty("varlist","DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH");
-        conn.setRequestProperty("grouplist","");
-        conn.setRequestProperty("suml","");
-        conn.setRequestProperty("sumRegion","");
-        conn.setRequestProperty("filter1","title=");
-        conn.setRequestProperty("filter2","title=");
-        conn.setRequestProperty("geo","All ");
-        conn.setRequestProperty("time","All Months");
-        conn.setRequestProperty("timename","Month");
-        conn.setRequestProperty("GEOGRAPHY","All");
-        conn.setRequestProperty("XYEAR","2015");
-        conn.setRequestProperty("FREQUENCY","All");
-        conn.setRequestProperty("VarName","DEPARTURES_SCHEDULED");
-        conn.setRequestProperty("VarDesc","DepScheduled");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarName","DEPARTURES_PERFORMED");
-        conn.setRequestProperty("VarDesc","DepPerformed");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","Payload");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","Seats");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarName","PASSENGERS");
-        conn.setRequestProperty("VarDesc","Passengers");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","Freight");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","Mail");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","Distance");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","RampTime");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","AirTime");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","UniqueCarrier");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarName","AIRLINE_ID");
-        conn.setRequestProperty("VarDesc","AirlineID");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","UniqueCarrierName");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","UniqCarrierEntity");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","CarrierRegion");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","Carrier");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","CarrierName");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","CarrierGroup");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","CarrierGroupNew");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","OriginAirportID");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","OriginAirportSeqID");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarName","ORIGIN_CITY_MARKET_ID");
-        conn.setRequestProperty("VarDesc","OriginCityMarketID");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","Origin");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","OriginCityName");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","OriginState");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","OriginStateFips");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","OriginStateName");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","OriginWac");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","DestAirportID");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","DestAirportSeqID");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarName","DEST_CITY_MARKET_ID");
-        conn.setRequestProperty("VarDesc","DestCityMarketID");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","Dest");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","DestCityName");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","DestState");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","DestStateFips");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","DestStateName");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","DestWac");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","AircraftGroup");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","AircraftType");
-        conn.setRequestProperty("VarType","Char");
-        conn.setRequestProperty("VarDesc","AircraftConfig");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","Year");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","Quarter");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarName","MONTH");
-        conn.setRequestProperty("VarDesc","Month");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","DistanceGroup");
-        conn.setRequestProperty("VarType","Num");
-        conn.setRequestProperty("VarDesc","Class");
-        conn.setRequestProperty("VarType","Char");
+    private String setReqProp() {
+        String charset = "UTF-8";
+        StringBuilder result = new StringBuilder();
+        try {
+            result.append(String.format("%s=%s&", URLEncoder.encode("UserTableName", charset), URLEncoder.encode("T_100_Domestic_Segment__All_Carriers", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("DBShortName", charset), URLEncoder.encode("", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("RawDataTable", charset), URLEncoder.encode("T_T100D_SEGMENT_ALL_CARRIER", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode("SELECT DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH FROM  T_T100D_SEGMENT_ALL_CARRIER WHERE YEAR=2015", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("varlist", charset), URLEncoder.encode("DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("grouplist", charset), URLEncoder.encode("", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("suml", charset), URLEncoder.encode("", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("sumRegion", charset), URLEncoder.encode("", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("filter1", charset), URLEncoder.encode("title=", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("filter2", charset), URLEncoder.encode("title=", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("geo", charset), URLEncoder.encode("All\\240", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("time", charset), URLEncoder.encode("All\\240Months", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("timename", charset), URLEncoder.encode("Month", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("GEOGRAPHY", charset), URLEncoder.encode("All", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("XYEAR", charset), URLEncoder.encode("2015", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("FREQUENCY", charset), URLEncoder.encode("All", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarName", charset), URLEncoder.encode("DEPARTURES_SCHEDULED", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("DepScheduled", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarName", charset), URLEncoder.encode("DEPARTURES_PERFORMED", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("DepPerformed", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Payload", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Seats", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarName", charset), URLEncoder.encode("PASSENGERS", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Passengers", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Freight", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Mail", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Distance", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("RampTime", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("AirTime", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("UniqueCarrier", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarName", charset), URLEncoder.encode("AIRLINE_ID", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("AirlineID", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("UniqueCarrierName", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("UniqCarrierEntity", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("CarrierRegion", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Carrier", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("CarrierName", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("CarrierGroup", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("CarrierGroupNew", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("OriginAirportID", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("OriginAirportSeqID", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarName", charset), URLEncoder.encode("ORIGIN_CITY_MARKET_ID", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("OriginCityMarketID", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Origin", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("OriginCityName", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("OriginState", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("OriginStateFips", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("OriginStateName", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("OriginWac", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("DestAirportID", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("DestAirportSeqID", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarName", charset), URLEncoder.encode("DEST_CITY_MARKET_ID", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("DestCityMarketID", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Dest", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("DestCityName", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("DestState", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("DestStateFips", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("DestStateName", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("DestWac", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("AircraftGroup", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("AircraftType", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("AircraftConfig", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Year", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Quarter", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarName", charset), URLEncoder.encode("MONTH", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Month", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("DistanceGroup", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Class", charset)));
+            result.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Char", charset)));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return result.toString();
     }
 }
