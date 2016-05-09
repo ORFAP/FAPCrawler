@@ -77,8 +77,8 @@ public class CrawlerImpl implements Crawler {
                 parts[0] = "";
                 String name = String.join("", parts).replaceAll("\"", "").trim();
                 City next = new City(name, id);
-//        cities.add(next);
-                if (next.getName().contains("Germany")) {
+                //Checks if City lies in the USA
+                if (parts.length==3&&parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]")) {
                     cities.add(sendCityToBackend(next));
                 }
             }
@@ -86,12 +86,6 @@ public class CrawlerImpl implements Crawler {
         rd.close();
 
         System.out.println("CREATION DONE");
-        List<City> resources = cityClient.findAll()
-                .getContent().stream()
-                .map(Resource::getContent)
-                .collect(Collectors.toList());
-
-        System.out.println(resources);
     }
 
     @Override
