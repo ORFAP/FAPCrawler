@@ -1,5 +1,10 @@
 package de.orfap.fap.crawler.crawler;
 
+import de.orfap.fap.crawler.domain.Airline;
+import de.orfap.fap.crawler.domain.City;
+import de.orfap.fap.crawler.domain.Route;
+import org.springframework.hateoas.Resource;
+
 /**
  * Created by Arne on 13.04.2016.
  */
@@ -8,7 +13,11 @@ public interface Crawler {
 
     void getCities(String urlToRead) throws Exception;
 
-    void sendAirlineToBackend(String id, String name);
+    Resource<Airline> sendAirlineToBackend(Airline airline);
 
-    void sendCityToBackend(String id, String name);
+    Resource<City> sendCityToBackend(City city);
+
+    void getRoutes(String urlToRead) throws Exception;
+
+    Resource<Route> sendRoutesToBackend(Route route);
 }

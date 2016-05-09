@@ -1,41 +1,40 @@
 package de.orfap.fap.crawler.domain;
 
-import org.springframework.hateoas.ResourceSupport;
-
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
+
 import java.util.Date;
 
 /**
  * Created by Arne on 13.04.2016.
  */
-public class Route extends ResourceSupport {
+public class Route {
 
   @NotNull
   @Past
-  Date date;
+  private Date date;
 
   @Min(0)
-  int delays;
+  private int delays;
 
   @Min(0)
-  int cancelled;
+  private int cancelled;
 
   @Min(0)
-  int passengerCount;
+  private int passengerCount;
 
   @Min(0)
-  int flightCount;
+  private int flightCount;
 
   @NotNull
-  String airline;
+  private String airline;
 
   @NotNull
-  String source;
+  private String source;
 
   @NotNull
-  String destination;
+  private String destination;
 
   public Route() {
   }

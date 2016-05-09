@@ -5,9 +5,9 @@ package de.orfap.fap.crawler.domain;
  */
 public class City {
 
-    String name;
+    private String name;
 
-    String id;
+    private String id;
 
     public City() {}
 

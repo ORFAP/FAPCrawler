@@ -25,5 +25,6 @@ public class FapCrawlerApplication implements CommandLineRunner {
   public void run(String... args) throws Exception {
     crawler.getAirlines("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_UNIQUE_CARRIERS");
     crawler.getCities("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRPORT_ID");
+    crawler.getRoutes("idc");
   }
 }
