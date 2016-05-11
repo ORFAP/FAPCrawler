@@ -112,21 +112,23 @@ public class CrawlerImpl implements Crawler {
         int i = 0;
         while ((line = br.readLine()) != null) {
             String[] columns = line.split(",");
-            /*// DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
+            // DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
             // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
             // "DEST_CITY_MARKET_ID","MONTH
-            Route route = new Route();
+            /*Route route = new Route();
 //            route.setDate(new Date());
 //            route.setCancelled(0);
 //            route.setDelays(0);
             route.setPassengerCount(Integer.parseInt(columns[2]));
             route.setFlightCount(Integer.parseInt(columns[1]));
-//            Airline airline = airlineClient.findOne()
-//            route.setAirline(airlines.get(0).getId().getHref());
-//            route.setSource(cities.get(0).getId().getHref());
-//            route.setDestination(cities.get(1).getId().getHref());
+            String airline = airlineClient.findById(columns[3]).getId().getHref();
+            route.setAirline(airline);
+            String source = cityClient.findById(columns[4]).getId().getHref();
+            route.setSource(source);
+            String destination = cityClient.findById(columns[5]).getId().getHref();
+            route.setDestination(destination);
             Resource<Route> result = sendRoutesToBackend(route);
-//            System.out.println(result);*/
+            System.out.println(result);*/
 
             if(i++ < 60)
                 System.out.println(line);
