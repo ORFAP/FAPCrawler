@@ -1,17 +1,20 @@
 package de.orfap.fap.crawler.domain;
 
+import org.springframework.data.annotation.Id;
+
 /**
  * Created by Arne on 13.04.2016.
  */
-public class City {
+public class Market {
 
     private String name;
 
+    @Id
     private String id;
 
-    public City() {}
+    public Market() {}
 
-    public City(String name, String id) {
+    public Market(String name, String id) {
         this.name = name;
         this.id = id;
     }
@@ -38,7 +41,7 @@ public class City {
             return true;
         if(this.getClass() != o.getClass())
             return false;
-        City other = (City) o;
+        Market other = (Market) o;
         if(!this.getName().equals(other.getName()))
             return false;
         if(!this.getId().equals(other.getId()))
@@ -48,7 +51,7 @@ public class City {
 
     @Override
     public String toString() {
-        return "City{" +
+        return "Market{" +
                 "name='" + name + '\'' +
                 ", id='" + id + '\'' +
                 '}';

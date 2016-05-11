@@ -1,7 +1,7 @@
 
 package de.orfap.fap.crawler.feign;
 
-import de.orfap.fap.crawler.domain.City;
+import de.orfap.fap.crawler.domain.Market;
 import org.springframework.cloud.netflix.feign.FeignClient;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
@@ -18,16 +18,16 @@ import org.springframework.web.bind.annotation.RequestParam;
  * Java-Version: 1.8
  * System: 2,3 GHz Intel Core i7, 16 GB 1600 MHz DDR3
  */
-@FeignClient(url = "${fap.backend.basePath}", name = "cities")
-public interface CityClient {
+@FeignClient(url = "${fap.backend.basePath}", name = "markets")
+public interface MarketClient {
 
-  @RequestMapping(method = RequestMethod.POST, value = "/cities", consumes = "application/json")
-  Resource<City> create(City city);
+  @RequestMapping(method = RequestMethod.POST, value = "/markets", consumes = "application/json")
+  Resource<Market> create(Market market);
 
-  @RequestMapping(method = RequestMethod.GET, value = "/cities/{id}", consumes = "application/json")
-  Resource<City> findOne(@RequestParam("id") String id);
+  @RequestMapping(method = RequestMethod.GET, value = "/markets/{id}", consumes = "application/json")
+  Resource<Market> findOne(@RequestParam("id") String id);
 
-  @RequestMapping(method = RequestMethod.GET, value = "/cities", consumes = "application/json")
-  Resources<Resource<City>> findAll();
+  @RequestMapping(method = RequestMethod.GET, value = "/markets", consumes = "application/json")
+  Resources<Resource<Market>> findAll();
 
 }

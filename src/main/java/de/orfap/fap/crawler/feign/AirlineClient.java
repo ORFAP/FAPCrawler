@@ -29,4 +29,6 @@ public interface AirlineClient {
   @RequestMapping(method = RequestMethod.GET, value = "/airlines", consumes = "application/json")
   Resources<Resource<Airline>> findAll();
 
+//  @RequestMapping(method = RequestMethod.GET, value = "/airlines", consumes = "application/json")
+//  Resource<Airline> findById(@RequestParam String id);
 }

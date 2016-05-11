@@ -1,5 +1,7 @@
 package de.orfap.fap.crawler.domain;
 
+import org.springframework.data.annotation.Id;
+
 /**
  * Created by Arne on 13.04.2016.
  */
@@ -7,6 +9,7 @@ public class Airline {
 
     private String name;
 
+    @Id
     private String id;
 
     public Airline() {}

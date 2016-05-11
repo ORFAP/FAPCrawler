@@ -1,12 +1,13 @@
 package de.orfap.fap.crawler.crawler;
 
 import de.orfap.fap.crawler.domain.Airline;
-import de.orfap.fap.crawler.domain.City;
+import de.orfap.fap.crawler.domain.Market;
 import de.orfap.fap.crawler.domain.Route;
 import de.orfap.fap.crawler.feign.AirlineClient;
-import de.orfap.fap.crawler.feign.CityClient;
+import de.orfap.fap.crawler.feign.MarketClient;
 import de.orfap.fap.crawler.feign.RouteClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.Resource;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +24,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 /**
  * Created by Arne on 13.04.2016.
@@ -34,12 +34,15 @@ public class CrawlerImpl implements Crawler {
     private AirlineClient airlineClient;
 
     @Autowired
-    private CityClient cityClient;
+    private MarketClient marketClient;
 
     @Autowired
     private RouteClient routeClient;
 
-    private ArrayList<Resource<City>> cities = new ArrayList();
+    @Value("${fap.backend.basePath}")
+    private String basepath;
+
+    private ArrayList<Resource<Market>> markets = new ArrayList();
 
     private ArrayList<Resource<Airline>> airlines = new ArrayList();
 
@@ -70,8 +73,8 @@ public class CrawlerImpl implements Crawler {
     }
 
     @Override
-    public void getCities(String urlToRead) throws Exception {
-        System.out.println("STARTING CREATION CITIES");
+    public void getMarkets(String urlToRead) throws Exception {
+        System.out.println("STARTING CREATION MARKETS");
         BufferedReader rd = (BufferedReader) getReader(urlToRead, "GET");
         String line;
         while ((line = rd.readLine()) != null) {
@@ -81,10 +84,10 @@ public class CrawlerImpl implements Crawler {
                 String id = parts[0].replaceAll("\"", "").trim();
                 parts[0] = "";
                 String name = String.join("", parts).replaceAll("\"", "").trim();
-                City next = new City(name, id);
-                //Checks if City lies in the USA
-                if (parts.length == 3 && ( parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]") || parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z] \\(") || parts[1].replaceAll("\"", "").trim().contains("New York City"))) {
-                    cities.add(sendCityToBackend(next));
+                Market next = new Market(name, id);
+                //Checks if Market lies in the USA
+                if (parts.length == 3 && ( parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]") || parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z] \\(") || parts[1].replaceAll("\"", "").trim().contains("New York Market"))) {
+                    markets.add(sendCityToBackend(next));
                 }
             }
         }
@@ -94,8 +97,8 @@ public class CrawlerImpl implements Crawler {
     }
 
     @Override
-    public Resource<City> sendCityToBackend(City city) {
-        return cityClient.create(city);
+    public Resource<Market> sendCityToBackend(Market market) {
+        return marketClient.create(market);
     }
 
     @Override
@@ -109,34 +112,35 @@ public class CrawlerImpl implements Crawler {
         BufferedReader br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zE)));
         System.out.println("stage1");
         String line = null;
-        int i = 0;
-        while ((line = br.readLine()) != null) {
-            String[] columns = line.split(",");
-            // DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
-            // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
-            // "DEST_CITY_MARKET_ID","MONTH
-            /*Route route = new Route();
-//            route.setDate(new Date());
-//            route.setCancelled(0);
-//            route.setDelays(0);
-            route.setPassengerCount(Integer.parseInt(columns[2]));
-            route.setFlightCount(Integer.parseInt(columns[1]));
-            String airline = airlineClient.findById(columns[3]).getId().getHref();
-            route.setAirline(airline);
-            String source = cityClient.findById(columns[4]).getId().getHref();
-            route.setSource(source);
-            String destination = cityClient.findById(columns[5]).getId().getHref();
-            route.setDestination(destination);
-            Resource<Route> result = sendRoutesToBackend(route);
-            System.out.println(result);*/
+        br.readLine();
+        try {
+            while ((line = br.readLine()) != null) {
+                if (!line.startsWith("[A-Z]")) {
+                    String[] columns = line.split(",");
+                    // DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
+                    // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
+                    // "DEST_CITY_MARKET_ID","MONTH
+                    Route route = new Route();
+                    route.setDate(new Date());
+                    route.setCancelled(0);
+                    route.setDelays(0);
+                    route.setPassengerCount((int)Double.parseDouble(columns[2]));
+                    route.setFlightCount((int)Double.parseDouble(columns[1]));
+                    route.setAirline(basepath + "airlines/" + columns[3]);
+                    route.setSource(basepath + "markets/" + columns[4]);
+                    route.setDestination(basepath + "markets/" + columns[5]);
+                    System.out.println(route);
+                    Resource<Route> result = sendRoutesToBackend(route);
+                    System.out.println(result);
+                }
+            }
+        } finally {
 
-            if(i++ < 60)
-                System.out.println(line);
+            zipFile.close();
+            File file = new File("temp.zip");
+            file.delete();
+            System.out.println("zip");
         }
-        zipFile.close();
-        File file = new File("temp.zip");
-        file.delete();
-        System.out.println("zip");
 
     }
 
