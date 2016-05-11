@@ -17,6 +17,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -82,7 +83,7 @@ public class CrawlerImpl implements Crawler {
                 String name = String.join("", parts).replaceAll("\"", "").trim();
                 City next = new City(name, id);
                 //Checks if City lies in the USA
-                if (parts.length == 3 && parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]")) {
+                if (parts.length == 3 && ( parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]") || parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z] \\(") || parts[1].replaceAll("\"", "").trim().contains("New York City"))) {
                     cities.add(sendCityToBackend(next));
                 }
             }
@@ -108,26 +109,33 @@ public class CrawlerImpl implements Crawler {
         BufferedReader br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zE)));
         System.out.println("stage1");
         String line = null;
+        int i = 0;
         while ((line = br.readLine()) != null) {
             String[] columns = line.split(",");
-            //rest of your code
-            System.out.println(line);
+            /*// DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
+            // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
+            // "DEST_CITY_MARKET_ID","MONTH
+            Route route = new Route();
+//            route.setDate(new Date());
+//            route.setCancelled(0);
+//            route.setDelays(0);
+            route.setPassengerCount(Integer.parseInt(columns[2]));
+            route.setFlightCount(Integer.parseInt(columns[1]));
+//            Airline airline = airlineClient.findOne()
+//            route.setAirline(airlines.get(0).getId().getHref());
+//            route.setSource(cities.get(0).getId().getHref());
+//            route.setDestination(cities.get(1).getId().getHref());
+            Resource<Route> result = sendRoutesToBackend(route);
+//            System.out.println(result);*/
+
+            if(i++ < 60)
+                System.out.println(line);
         }
         zipFile.close();
         File file = new File("temp.zip");
         file.delete();
         System.out.println("zip");
-        /*Route route = new Route();
-        route.setDate(new Date());
-        route.setCancelled(0);
-        route.setDelays(0);
-        route.setPassengerCount(0);
-        route.setFlightCount(0);
-        route.setAirline(airlines.get(0).getId().getHref());
-        route.setSource(cities.get(0).getId().getHref());
-        route.setDestination(cities.get(1).getId().getHref());
-        Resource<Route> result = sendRoutesToBackend(route);
-        System.out.println(result);*/
+
     }
 
     @Override
