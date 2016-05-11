@@ -11,7 +11,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -20,8 +26,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -61,15 +65,7 @@ public class CrawlerImpl implements Crawler {
             }
         }
         rd.close();
-
         System.out.println("CREATION DONE");
-        List<Airline> resources = airlineClient.findAll()
-                .getContent().stream()
-                .map(Resource::getContent)
-                .collect(Collectors.toList());
-
-//    System.out.println(resources);
-
     }
 
     @Override
@@ -86,8 +82,8 @@ public class CrawlerImpl implements Crawler {
                 String name = String.join("", parts).replaceAll("\"", "").trim();
                 Market next = new Market(name, id);
                 //Checks if Market lies in the USA
-                if (parts.length == 3 && ( parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]") || parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z] \\(") || parts[1].replaceAll("\"", "").trim().contains("New York Market"))) {
-                    markets.add(sendCityToBackend(next));
+                if (parts.length == 3 && ( parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]") || parts[2].replaceAll("\"", "").trim().contains("[A-Z][A-Z] [\\(]") || parts[2].contains("Metropolitan Area"))) {
+                    markets.add(sendMarketToBackend(next));
                 }
             }
         }
@@ -97,12 +93,13 @@ public class CrawlerImpl implements Crawler {
     }
 
     @Override
-    public Resource<Market> sendCityToBackend(Market market) {
+    public Resource<Market> sendMarketToBackend(Market market) {
         return marketClient.create(market);
     }
 
     @Override
     public void getRoutes(String urlToRead) throws Exception {
+        System.out.println("STARTING CREATION ROUTES");
         InputStream rd = (InputStream) getReader(urlToRead, "POST");
         Files.copy(rd, Paths.get("temp.zip"));
         ZipFile zipFile = new ZipFile ("temp.zip");
@@ -110,13 +107,11 @@ public class CrawlerImpl implements Crawler {
         Enumeration entries = zipFile.entries();
         ZipEntry zE=(ZipEntry)entries.nextElement();
         BufferedReader br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zE)));
-        System.out.println("stage1");
-        String line = null;
-        br.readLine();
+        String line = br.readLine();
         try {
             while ((line = br.readLine()) != null) {
-                if (!line.startsWith("[A-Z]")) {
-                    String[] columns = line.split(",");
+                String[] columns = line.split(",");
+                if(!line.contains(",,") && columns[4].equals("31703")) {
                     // DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
                     // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
                     // "DEST_CITY_MARKET_ID","MONTH
@@ -124,22 +119,19 @@ public class CrawlerImpl implements Crawler {
                     route.setDate(new Date());
                     route.setCancelled(0);
                     route.setDelays(0);
-                    route.setPassengerCount((int)Double.parseDouble(columns[2]));
-                    route.setFlightCount((int)Double.parseDouble(columns[1]));
+                    route.setPassengerCount((int) Double.parseDouble(columns[2]));
+                    route.setFlightCount((int) Double.parseDouble(columns[1]));
                     route.setAirline(basepath + "airlines/" + columns[3]);
                     route.setSource(basepath + "markets/" + columns[4]);
                     route.setDestination(basepath + "markets/" + columns[5]);
-                    System.out.println(route);
-                    Resource<Route> result = sendRoutesToBackend(route);
-                    System.out.println(result);
+                    sendRoutesToBackend(route);
                 }
             }
         } finally {
-
             zipFile.close();
             File file = new File("temp.zip");
             file.delete();
-            System.out.println("zip");
+            System.out.println("CREATION DONE");
         }
 
     }
@@ -154,6 +146,13 @@ public class CrawlerImpl implements Crawler {
         return airlineClient.create(airline);
     }
 
+    /**
+     * Gives a reader to an URL
+     * @param urlToRead the URL
+     * @param method the Http method
+     * @return resulting Reader
+     * @throws IOException
+     */
     private Object getReader(String urlToRead, String method) throws IOException {
         URL url = new URL(urlToRead);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -161,15 +160,15 @@ public class CrawlerImpl implements Crawler {
         if (method.equals("POST")) {
             setReqProp(conn);
             return conn.getInputStream();
-            /*int responseCode = conn.getResponseCode();
-            System.out.println("Responsecode: " + responseCode);
-            for (Map.Entry<String, List<String>> header : conn.getHeaderFields().entrySet()) {
-                System.out.println(header.getKey() + "=" + header.getValue());
-            }*/
         }
         return new BufferedReader(new InputStreamReader(conn.getInputStream()));
     }
 
+    /**
+     * Configures the HttpURLConnection
+     * @param conn the Connection to be configured
+     * @throws IOException
+     */
     private void setReqProp(HttpURLConnection conn) throws IOException {
         conn.setRequestProperty("User-Agent", "Mozilla/5.0");
         conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
@@ -300,7 +299,6 @@ public class CrawlerImpl implements Crawler {
             e.printStackTrace();
         }
         DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
-        //wr.writeBytes("/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0 HTTP/1.1");
         wr.writeBytes(postHTTPform.toString());
         wr.flush();
         wr.close();
