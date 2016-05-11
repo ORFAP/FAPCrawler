@@ -1,21 +1,16 @@
 package de.orfap.fap.crawler.domain;
 
-import org.springframework.hateoas.ResourceSupport;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import org.springframework.data.annotation.Id;
 
 /**
  * Created by Arne on 13.04.2016.
  */
 public class Airline {
 
-    @NotNull
-    @Size(min = 3)
-    String name;
+    private String name;
 
-    @NotNull
-    String id;
+    @Id
+    private String id;
 
     public Airline() {}
 
