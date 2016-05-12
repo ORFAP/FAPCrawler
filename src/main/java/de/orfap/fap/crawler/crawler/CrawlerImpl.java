@@ -26,6 +26,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.GregorianCalendar;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -116,7 +117,7 @@ public class CrawlerImpl implements Crawler {
                     // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
                     // "DEST_CITY_MARKET_ID","MONTH
                     Route route = new Route();
-                    route.setDate(new Date(2015,Integer.parseInt(columns[6]),1));
+                    route.setDate(new Date(2015-1900,Integer.parseInt(columns[6])+1,1));
                     route.setCancelled(0);
                     route.setDelays(0);
                     route.setPassengerCount((int) Double.parseDouble(columns[2]));
