@@ -119,7 +119,7 @@ public class CrawlerImpl implements Crawler {
                     Route route = new Route();
                     GregorianCalendar gregorianCalendar = new GregorianCalendar(2015, Integer.parseInt(columns[6]), 1);
                     route.setDate(gregorianCalendar.getTime());
-                    route.setCancelled((int) (Double.parseDouble(columns[0])-Double.parseDouble(columns[1])));
+                    route.setCancelled(0);
                     route.setDelays(0);
                     route.setPassengerCount((int) Double.parseDouble(columns[2]));
                     route.setFlightCount((int) Double.parseDouble(columns[1]));
@@ -133,9 +133,8 @@ public class CrawlerImpl implements Crawler {
             zipFile.close();
             File file = new File("temp.zip");
             file.delete();
-            System.out.println("CREATION DONE");
         }
-
+        System.out.println("CREATION DONE");
     }
 
     @Override
