@@ -11,20 +11,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.zip.ZipEntry;
@@ -47,13 +40,15 @@ public class CrawlerImpl implements Crawler {
     @Value("${fap.backend.basePath}")
     private String basepath;
 
-    private ArrayList<Resource<Market>> markets = new ArrayList();
+    private ArrayList<Market> markets = new ArrayList();
 
-    private ArrayList<Resource<Airline>> airlines = new ArrayList();
+    private ArrayList<Airline> airlines = new ArrayList();
+
+    private ArrayList<Route> routes = new ArrayList();
 
     @Override
     public void getAirlines(String urlToRead) throws Exception {
-        System.out.println("STARTING CREATION AIRLINES");
+        System.out.println("STARTED CRAWSING AIRLINES, as in crawl & parse");
         BufferedReader rd = (BufferedReader) getReader(urlToRead, "GET");
         String line;
         Airline next;
@@ -61,17 +56,17 @@ public class CrawlerImpl implements Crawler {
             if (line.startsWith("\"")) {
                 String[] parts = line.split(",");
                 next = new Airline(parts[1].replaceAll("(\"|\\([1-9]\\))", "").trim(), parts[0].replaceAll("\"", ""));
-//          airlines.add(next);
-                airlines.add(sendAirlineToBackend(next));
+                airlines.add(next);
+//                airlines.add(sendAirlineToBackend(next));
             }
         }
         rd.close();
-        System.out.println("CREATION DONE");
+        System.out.println("CRAWSING AIRLINES DONE");
     }
 
     @Override
     public void getMarkets(String urlToRead) throws Exception {
-        System.out.println("STARTING CREATION MARKETS");
+        System.out.println("STARTED CRAWSING MARKETS, as in crawl & parse");
         BufferedReader rd = (BufferedReader) getReader(urlToRead, "GET");
         String line;
         while ((line = rd.readLine()) != null) {
@@ -83,36 +78,31 @@ public class CrawlerImpl implements Crawler {
                 String name = String.join("", parts).replaceAll("\"", "").trim();
                 Market next = new Market(name, id);
                 //Checks if Market lies in the USA
-                if (parts.length == 3 && ( parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]") || parts[2].replaceAll("\"", "").trim().contains("[A-Z][A-Z] [\\(]") || parts[2].contains("Metropolitan Area"))) {
-                    markets.add(sendMarketToBackend(next));
+                if (parts.length == 3 && (parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]") || parts[2].replaceAll("\"", "").trim().contains("[A-Z][A-Z] [\\(]") || parts[2].contains("Metropolitan Area"))) {
+                    markets.add(next);
+//                  markets.add(sendMarketToBackend(next));
                 }
             }
         }
         rd.close();
-
-        System.out.println("CREATION DONE");
-    }
-
-    @Override
-    public Resource<Market> sendMarketToBackend(Market market) {
-        return marketClient.create(market);
+        System.out.println("CRAWSING MARKETS DONE");
     }
 
     @Override
     public void getRoutes(String urlToRead) throws Exception {
-        System.out.println("STARTING CREATION ROUTES");
+        System.out.println("STARTED CRAWSING ROUTES, as in crawl & parse");
         InputStream rd = (InputStream) getReader(urlToRead, "POST");
         Files.copy(rd, Paths.get("temp.zip"));
-        ZipFile zipFile = new ZipFile ("temp.zip");
+        ZipFile zipFile = new ZipFile("temp.zip");
 
         Enumeration entries = zipFile.entries();
-        ZipEntry zE=(ZipEntry)entries.nextElement();
+        ZipEntry zE = (ZipEntry) entries.nextElement();
         BufferedReader br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zE)));
         String line = br.readLine();
         try {
             while ((line = br.readLine()) != null) {
                 String[] columns = line.split(",");
-                if(!line.contains(",,") && columns[4].equals("31703")) {
+                if (!line.contains(",,") && columns[4].equals("31703")) {
                     // DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
                     // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
                     // "DEST_CITY_MARKET_ID","MONTH
@@ -126,7 +116,8 @@ public class CrawlerImpl implements Crawler {
                     route.setAirline(basepath + "airlines/" + columns[3]);
                     route.setSource(basepath + "markets/" + columns[4]);
                     route.setDestination(basepath + "markets/" + columns[5]);
-                    sendRoutesToBackend(route);
+                    routes.add(route);
+//                    sendRoutesToBackend(route);
                 }
             }
         } finally {
@@ -134,23 +125,38 @@ public class CrawlerImpl implements Crawler {
             File file = new File("temp.zip");
             file.delete();
         }
-        System.out.println("CREATION DONE");
+        System.out.println("CRAWSING ROUTES DONE");
     }
 
-    @Override
-    public Resource<Route> sendRoutesToBackend(Route route) {
-        return routeClient.create(route);
-    }
-
-    @Override
-    public Resource<Airline> sendAirlineToBackend(Airline airline) {
-        return airlineClient.create(airline);
+    public void sendDataToBackend() {
+        System.out.println("STARTED SENDING Airlines, Markets & Routes to Backend");
+        for (Airline airline : airlines) {
+            for (int i = 0; i < routes.size(); i++) {
+                if (routes.get(i).getAirline().equals(airline.getId())) {
+                    sendAirlineToBackend(airline);
+                    i = routes.size();
+                }
+            }
+        }
+        for (Market market : markets) {
+            for (int i = 0; i < routes.size(); i++) {
+                if (routes.get(i).getDestination().equals(market.getId())) {
+                    sendMarketToBackend(market);
+                    i = routes.size();
+                }
+            }
+        }
+        for (Route route : routes) {
+            sendRoutesToBackend(route);
+        }
+        System.out.println("SENDING Airlines, Markets & Routes to Backend DONE");
     }
 
     /**
      * Gives a reader to an URL
+     *
      * @param urlToRead the URL
-     * @param method the Http method
+     * @param method    the Http method
      * @return resulting Reader
      * @throws IOException
      */
@@ -159,7 +165,7 @@ public class CrawlerImpl implements Crawler {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod(method);
         if (method.equals("POST")) {
-            setReqProp(conn);
+            setReqPropT100D(conn);
             return conn.getInputStream();
         }
         return new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -167,10 +173,11 @@ public class CrawlerImpl implements Crawler {
 
     /**
      * Configures the HttpURLConnection
+     *
      * @param conn the Connection to be configured
      * @throws IOException
      */
-    private void setReqProp(HttpURLConnection conn) throws IOException {
+    private void setReqPropT100D(HttpURLConnection conn) throws IOException {
         conn.setRequestProperty("User-Agent", "Mozilla/5.0");
         conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
         conn.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
@@ -303,5 +310,20 @@ public class CrawlerImpl implements Crawler {
         wr.writeBytes(postHTTPform.toString());
         wr.flush();
         wr.close();
+    }
+
+    @Override
+    public Resource<Market> sendMarketToBackend(Market market) {
+        return marketClient.create(market);
+    }
+
+    @Override
+    public Resource<Route> sendRoutesToBackend(Route route) {
+        return routeClient.create(route);
+    }
+
+    @Override
+    public Resource<Airline> sendAirlineToBackend(Airline airline) {
+        return airlineClient.create(airline);
     }
 }
