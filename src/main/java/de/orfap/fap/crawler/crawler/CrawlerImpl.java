@@ -116,7 +116,7 @@ public class CrawlerImpl implements Crawler {
                     // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
                     // "DEST_CITY_MARKET_ID","MONTH
                     Route route = new Route();
-                    route.setDate(new Date());
+                    route.setDate(new Date(2015,Integer.parseInt(columns[6]),1));
                     route.setCancelled(0);
                     route.setDelays(0);
                     route.setPassengerCount((int) Double.parseDouble(columns[2]));
