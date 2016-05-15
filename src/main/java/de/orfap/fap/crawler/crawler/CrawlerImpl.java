@@ -24,7 +24,6 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.zip.ZipEntry;
@@ -119,7 +118,7 @@ public class CrawlerImpl implements Crawler {
                     Route route = new Route();
                     GregorianCalendar gregorianCalendar = new GregorianCalendar(2015, Integer.parseInt(columns[6]), 1);
                     route.setDate(gregorianCalendar.getTime());
-                    route.setCancelled((int) (Double.parseDouble(columns[0])-Double.parseDouble(columns[1])));
+                    route.setCancelled((int) Math.max((Double.parseDouble(columns[0])-Double.parseDouble(columns[1])),0.0));
                     route.setDelays(0);
                     route.setPassengerCount((int) Double.parseDouble(columns[2]));
                     route.setFlightCount((int) Double.parseDouble(columns[1]));
