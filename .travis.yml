@@ -13,7 +13,7 @@ after_success:
   - docker build -f dockerfile -t $REPO:$COMMIT .
   - docker tag $REPO:$COMMIT $REPO:$TAG
   - docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
-  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then docker push $REPO ; fi
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then docker push $REPO ; fi
 
 notifications:
   email: false
