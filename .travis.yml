@@ -9,7 +9,7 @@ script: gradle check
 after_success:
   - docker login -e $DOCKER_EMAIL -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
   - export REPO=arne2/fapcrawler
-  - export TAG= echo latest
+  - export TAG=latest
   - docker build -f dockerfile -t $REPO:$COMMIT .
   - docker tag $REPO:$COMMIT $REPO:$TAG
   - docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
