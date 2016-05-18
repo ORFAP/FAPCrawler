@@ -47,9 +47,11 @@ public class CrawlerImpl implements Crawler {
     @Value("${fap.backend.basePath}")
     private String basepath;
 
-    private ArrayList<Resource<Market>> markets = new ArrayList();
+    private ArrayList<Market> markets = new ArrayList();
 
-    private ArrayList<Resource<Airline>> airlines = new ArrayList();
+    private ArrayList<Airline> airlines = new ArrayList();
+
+    private ArrayList<Route> routes = new ArrayList();
 
     @Override
     public void getAirlines(String urlToRead) throws Exception {
@@ -95,12 +97,12 @@ public class CrawlerImpl implements Crawler {
             }
         }
         rd.close();
-        System.out.println("CRAWSING MARKETS DONE");
+        System.out.println("CRAWLING MARKETS DONE");
     }
 
     @Override
     public void getRoutes(String urlToRead) throws Exception {
-        System.out.println("STARTED CRAWSING ROUTES, as in crawl & parse");
+        System.out.println("STARTED CRAWLING ROUTES");
         Resources<Resource<Route>> exsisting = routeClient.findAll();
 //        InputStream rd = (InputStream) getReader(urlToRead, "POST");
 //        Files.copy(rd, Paths.get("temp.zip"));
@@ -137,7 +139,7 @@ public class CrawlerImpl implements Crawler {
 //            File file = new File("temp.zip");
 //            file.delete();
         }
-        System.out.println("CRAWSING ROUTES DONE");
+        System.out.println("CRAWLING ROUTES DONE");
     }
 
     public void sendDataToBackend() {
@@ -150,6 +152,7 @@ public class CrawlerImpl implements Crawler {
                 }
             }
         }
+        airlines.clear();
         for (Market market : markets) {
             for (int i = 0; i < routes.size(); i++) {
                 if (routes.get(i).getDestination().equals(market.getId())) {
@@ -158,9 +161,11 @@ public class CrawlerImpl implements Crawler {
                 }
             }
         }
+        markets.clear();
         for (Route route : routes) {
             sendRoutesToBackend(route);
         }
+        routes.clear();
         System.out.println("SENDING Airlines, Markets & Routes to Backend DONE");
     }
 
@@ -325,7 +330,7 @@ public class CrawlerImpl implements Crawler {
     }
 
     /**
-     * Configures the HttpURLConnection for the T100D table.
+     * Configures the HttpURLConnection for the on time table.
      *
      * @param conn the Connection to be configured
      * @throws IOException
