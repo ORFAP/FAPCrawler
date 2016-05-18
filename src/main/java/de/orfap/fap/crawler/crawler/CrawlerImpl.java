@@ -25,8 +25,12 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -56,15 +60,14 @@ public class CrawlerImpl implements Crawler {
     @Override
     public void getAirlines(String urlToRead) throws Exception {
         System.out.println("STARTING CREATION AIRLINES");
-        Resources<Resource<Airline>> exsisting = airlineClient.findAll();
+        Collection<Airline> existing = airlineClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         BufferedReader rd = (BufferedReader) getReader(urlToRead, "GET");
         String line;
-        Airline next;
         while ((line = rd.readLine()) != null) {
             if (line.startsWith("\"")) {
                 String[] parts = line.split(",");
-                next = new Airline(parts[1].replaceAll("(\"|\\([1-9]\\))", "").trim(), parts[0].replaceAll("\"", ""));
-                if(!exsisting.getContent().contains(next)) {
+                final Airline next = new Airline(parts[1].replaceAll("(\"|\\([1-9]\\))", "").trim(), parts[0].replaceAll("\"", ""));
+                if(!existing.contains(next)) {
                     airlines.add(next);
                 }
             }
@@ -76,7 +79,7 @@ public class CrawlerImpl implements Crawler {
     @Override
     public void getMarkets(String urlToRead) throws Exception {
         System.out.println("STARTING CREATION MARKETS");
-        Resources<Resource<Market>> exsisting = marketClient.findAll();
+        Resources<Resource<Market>> existing = marketClient.findAll();
         BufferedReader rd = (BufferedReader) getReader(urlToRead, "GET");
         String line;
         while ((line = rd.readLine()) != null) {
@@ -87,7 +90,7 @@ public class CrawlerImpl implements Crawler {
                 String name = String.join("", parts).replaceAll("\"", "").trim();
                 Market next = new Market(name, id);
                 //Checks if Market lies in the USA
-                if(!exsisting.getContent().contains(next)) {
+                if(!existing.getContent().contains(next)) {
                     if (parts.length == 3 && (parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]")
                             || parts[2].replaceAll("\"", "").trim().contains("[A-Z][A-Z] [\\(]")
                             || parts[2].contains("Metropolitan Area"))) {
@@ -103,9 +106,9 @@ public class CrawlerImpl implements Crawler {
     @Override
     public void getRoutes(String urlToRead) throws Exception {
         System.out.println("STARTED CRAWLING ROUTES");
-        Resources<Resource<Route>> exsisting = routeClient.findAll();
-//        InputStream rd = (InputStream) getReader(urlToRead, "POST");
-//        Files.copy(rd, Paths.get("temp.zip"));
+        Resources<Resource<Route>> existing = routeClient.findAll();
+        InputStream rd = (InputStream) getReader(urlToRead, "POST");
+        Files.copy(rd, Paths.get("temp.zip"));
         ZipFile zipFile = new ZipFile("temp.zip");
 
         Enumeration entries = zipFile.entries();
@@ -129,37 +132,48 @@ public class CrawlerImpl implements Crawler {
                     route.setAirline(basepath + "airlines/" + columns[3]);
                     route.setSource(basepath + "markets/" + columns[4]);
                     route.setDestination(basepath + "markets/" + columns[5]);
-                    if (!exsisting.getContent().contains(route)) {
+                    if (!existing.getContent().contains(route)) {
                         routes.add(route);
                     }
                 }
             }
         } finally {
             zipFile.close();
-//            File file = new File("temp.zip");
-//            file.delete();
+            File file = new File("temp.zip");
+            file.delete();
         }
         System.out.println("CRAWLING ROUTES DONE");
     }
 
     public void sendDataToBackend() {
         System.out.println("STARTED SENDING Airlines, Markets & Routes to Backend");
+        Set<Airline> usedAirlines = new HashSet<>();
+
         for (Airline airline : airlines) {
             for (int i = 0; i < routes.size(); i++) {
-                if (routes.get(i).getAirline().equals(airline.getId())) {
-                    sendAirlineToBackend(airline);
+                if (routes.get(i).getAirline().equals(basepath + "airlines/" + airline.getId())) {
+                    usedAirlines.add(airline);
                     i = routes.size();
                 }
             }
         }
         airlines.clear();
+        for(Airline airline : usedAirlines){
+            sendAirlineToBackend(airline);
+        }
+
+        Set<Market> usedMarkets = new HashSet<>();
         for (Market market : markets) {
             for (int i = 0; i < routes.size(); i++) {
-                if (routes.get(i).getDestination().equals(market.getId())) {
-                    sendMarketToBackend(market);
+                if (routes.get(i).getDestination().equals(basepath + "markets/" + market.getId())
+                        || routes.get(i).getSource().equals(basepath + "markets/" + market.getId())) {
+                    usedMarkets.add(market);
                     i = routes.size();
                 }
             }
+        }
+        for(Market market: usedMarkets){
+            sendMarketToBackend(market);
         }
         markets.clear();
         for (Route route : routes) {
