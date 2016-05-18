@@ -9,9 +9,16 @@ import de.orfap.fap.crawler.feign.RouteClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.Resources;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -40,15 +47,14 @@ public class CrawlerImpl implements Crawler {
     @Value("${fap.backend.basePath}")
     private String basepath;
 
-    private ArrayList<Market> markets = new ArrayList();
+    private ArrayList<Resource<Market>> markets = new ArrayList();
 
-    private ArrayList<Airline> airlines = new ArrayList();
-
-    private ArrayList<Route> routes = new ArrayList();
+    private ArrayList<Resource<Airline>> airlines = new ArrayList();
 
     @Override
     public void getAirlines(String urlToRead) throws Exception {
-        System.out.println("STARTED CRAWSING AIRLINES, as in crawl & parse");
+        System.out.println("STARTING CREATION AIRLINES");
+        Resources<Resource<Airline>> exsisting = airlineClient.findAll();
         BufferedReader rd = (BufferedReader) getReader(urlToRead, "GET");
         String line;
         Airline next;
@@ -56,17 +62,19 @@ public class CrawlerImpl implements Crawler {
             if (line.startsWith("\"")) {
                 String[] parts = line.split(",");
                 next = new Airline(parts[1].replaceAll("(\"|\\([1-9]\\))", "").trim(), parts[0].replaceAll("\"", ""));
-                airlines.add(next);
-//                airlines.add(sendAirlineToBackend(next));
+                if(!exsisting.getContent().contains(next)) {
+                    airlines.add(next);
+                }
             }
         }
         rd.close();
-        System.out.println("CRAWSING AIRLINES DONE");
+        System.out.println("CREATION DONE");
     }
 
     @Override
     public void getMarkets(String urlToRead) throws Exception {
-        System.out.println("STARTED CRAWSING MARKETS, as in crawl & parse");
+        System.out.println("STARTING CREATION MARKETS");
+        Resources<Resource<Market>> exsisting = marketClient.findAll();
         BufferedReader rd = (BufferedReader) getReader(urlToRead, "GET");
         String line;
         while ((line = rd.readLine()) != null) {
@@ -77,9 +85,12 @@ public class CrawlerImpl implements Crawler {
                 String name = String.join("", parts).replaceAll("\"", "").trim();
                 Market next = new Market(name, id);
                 //Checks if Market lies in the USA
-                if (parts.length == 3 && (parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]") || parts[2].replaceAll("\"", "").trim().contains("[A-Z][A-Z] [\\(]") || parts[2].contains("Metropolitan Area"))) {
-                    markets.add(next);
-//                  markets.add(sendMarketToBackend(next));
+                if(!exsisting.getContent().contains(next)) {
+                    if (parts.length == 3 && (parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]")
+                            || parts[2].replaceAll("\"", "").trim().contains("[A-Z][A-Z] [\\(]")
+                            || parts[2].contains("Metropolitan Area"))) {
+                        markets.add(next);
+                    }
                 }
             }
         }
@@ -90,6 +101,7 @@ public class CrawlerImpl implements Crawler {
     @Override
     public void getRoutes(String urlToRead) throws Exception {
         System.out.println("STARTED CRAWSING ROUTES, as in crawl & parse");
+        Resources<Resource<Route>> exsisting = routeClient.findAll();
 //        InputStream rd = (InputStream) getReader(urlToRead, "POST");
 //        Files.copy(rd, Paths.get("temp.zip"));
         ZipFile zipFile = new ZipFile("temp.zip");
@@ -115,8 +127,9 @@ public class CrawlerImpl implements Crawler {
                     route.setAirline(basepath + "airlines/" + columns[3]);
                     route.setSource(basepath + "markets/" + columns[4]);
                     route.setDestination(basepath + "markets/" + columns[5]);
-                    routes.add(route);
-//                    sendRoutesToBackend(route);
+                    if (!exsisting.getContent().contains(route)) {
+                        routes.add(route);
+                    }
                 }
             }
         } finally {
