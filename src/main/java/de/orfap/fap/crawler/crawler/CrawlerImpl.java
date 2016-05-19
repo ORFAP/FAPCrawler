@@ -41,23 +41,17 @@ import java.util.zip.ZipFile;
  */
 @Service
 public class CrawlerImpl implements Crawler {
+    private final ArrayList<Market> markets = new ArrayList<>();
+    private final ArrayList<Airline> airlines = new ArrayList<>();
+    private final ArrayList<Route> routes = new ArrayList<>();
     @Autowired
     private AirlineClient airlineClient;
-
     @Autowired
     private MarketClient marketClient;
-
     @Autowired
     private RouteClient routeClient;
-
     @Value("${fap.backend.basePath}")
     private String basepath;
-
-    private ArrayList<Market> markets = new ArrayList();
-
-    private ArrayList<Airline> airlines = new ArrayList();
-
-    private ArrayList<Route> routes = new ArrayList();
 
     @Override
     public void getAirlines(String urlToRead) throws Exception {
@@ -72,7 +66,7 @@ public class CrawlerImpl implements Crawler {
             }
         }
         rd.close();
-        System.out.println("CRAWLING AIRLINES DONE: "+airlines.size() + " Airlines crawled");
+        System.out.println("CRAWLING AIRLINES DONE: " + airlines.size() + " Airlines crawled");
     }
 
     @Override
@@ -96,7 +90,7 @@ public class CrawlerImpl implements Crawler {
             }
         }
         rd.close();
-        System.out.println("CRAWLING MARKETS DONE: "+markets.size()+" markets crawled.");
+        System.out.println("CRAWLING MARKETS DONE: " + markets.size() + " markets crawled.");
     }
 
     @Override
@@ -178,7 +172,7 @@ public class CrawlerImpl implements Crawler {
             File file = new File(filename);
             file.delete();
         }
-        System.out.println("CRAWLING ROUTES DONE: "+routes.size() + " Routes crawled.");
+        System.out.println("CRAWLING ROUTES DONE: " + routes.size() + " Routes crawled.");
     }
 
     public void sendDataToBackend() {
@@ -196,7 +190,7 @@ public class CrawlerImpl implements Crawler {
         }
         airlines.clear();
         usedAirlines.forEach(this::sendAirlineToBackend);
-        System.out.println("SENT "+usedAirlines.size()+" Airlines to Backend, ignored "+existingAirlines.size()+" already existing");
+        System.out.println("SENT " + usedAirlines.size() + " Airlines to Backend, ignored " + existingAirlines.size() + " already existing");
         Set<Market> usedMarkets = new HashSet<>();
         Collection<Market> existingMarkets = marketClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         for (Market market : markets) {
@@ -209,11 +203,11 @@ public class CrawlerImpl implements Crawler {
             }
         }
         usedMarkets.forEach(this::sendMarketToBackend);
-        System.out.println("SENT "+usedMarkets.size()+" Markets to Backend, ignored "+existingMarkets.size()+" already existing");
+        System.out.println("SENT " + usedMarkets.size() + " Markets to Backend, ignored " + existingMarkets.size() + " already existing");
         markets.clear();
         Collection<Route> existingRoutes = routeClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         routes.stream().filter(route -> !existingRoutes.contains(route)).forEach(this::sendRoutesToBackend);
-        System.out.println("SENT "+(routes.stream().filter(route -> !existingRoutes.contains(route))).count()+" Routes to Backend, ignored "+existingRoutes.size()+" already existing");
+        System.out.println("SENT " + (routes.stream().filter(route -> !existingRoutes.contains(route))).count() + " Routes to Backend, ignored " + existingRoutes.size() + " already existing");
         routes.clear();
         System.out.println("SENDING Airlines, Markets & Routes to Backend DONE");
     }

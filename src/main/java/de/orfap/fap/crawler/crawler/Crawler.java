@@ -18,7 +18,7 @@ public interface Crawler {
     void getAirlines(String urlToRead) throws Exception;
 
     /**
-     * Crawlsing the markets, as in crawling & parsing.
+     * Crawlsings the markets, as in crawling & parsing.
      *
      * @param urlToRead where to read
      * @throws Exception
@@ -26,7 +26,7 @@ public interface Crawler {
     void getMarkets(String urlToRead) throws Exception;
 
     /**
-     * Crawlsing the routes, as in crawling & parsing.
+     * Crawlsings the routes, as in crawling & parsing.
      *
      * @param urlToRead where to read
      * @param year      the year to be crawled
@@ -35,7 +35,7 @@ public interface Crawler {
     void getRoutes(String urlToRead, int year) throws Exception;
 
     /**
-     * Crawlsing the Flights, as in crawling & parsing.
+     * Crawlsings the Flights, as in crawling & parsing.
      *
      * @param urlToRead where to read
      * @param year      the year to be crawled
@@ -44,32 +44,32 @@ public interface Crawler {
     void getFlights(String urlToRead, int year) throws Exception;
 
     /**
-     * Sends the crawsinged (as in crawled & parsed) airlines, markets & routes to the backend.
+     * Sends the crawlsinged (as in crawled & parsed) airlines, markets & routes to the backend.
      * Airlines & markets not mentioned in the routes are not sent to the backend.
      */
-    public void sendDataToBackend();
+    void sendDataToBackend();
 
     /**
      * Sends an airline to the backend.
      *
-     * @param airline
-     * @return
+     * @param airline to be sent
+     * @return link to created airline
      */
     Resource<Airline> sendAirlineToBackend(Airline airline);
 
     /**
      * Sends a market to the backend.
      *
-     * @param market
-     * @return
+     * @param market to be sent
+     * @return link to the created market
      */
     Resource<Market> sendMarketToBackend(Market market);
 
     /**
      * Sends a route to the backend.
      *
-     * @param route
-     * @return
+     * @param route to be sent
+     * @return link to the created route
      */
     Resource<Route> sendRoutesToBackend(Route route);
 }

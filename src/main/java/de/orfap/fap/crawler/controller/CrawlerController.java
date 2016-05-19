@@ -18,11 +18,11 @@ public class CrawlerController {
     Crawler crawler;
 
     @RequestMapping(value = "/crawlIntoBackend", method = RequestMethod.GET)
-    public void crawlIntoBackend(@Param("year")String year) throws Exception{
+    public void crawlIntoBackend(@Param("year") String year) throws Exception {
         int usedYear;
-        try{
-            usedYear=Integer.parseInt(year);
-        }catch (NumberFormatException nfe){
+        try {
+            usedYear = Integer.parseInt(year);
+        } catch (NumberFormatException nfe) {
             throw new IllegalArgumentException("year must be a numerical value");
         }
         System.out.println("START");
