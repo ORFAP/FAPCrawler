@@ -24,11 +24,14 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Month;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -67,7 +70,7 @@ public class CrawlerImpl implements Crawler {
             if (line.startsWith("\"")) {
                 String[] parts = line.split(",");
                 final Airline next = new Airline(parts[1].replaceAll("(\"|\\([1-9]\\))", "").trim(), parts[0].replaceAll("\"", ""));
-                if(!existing.contains(next)) {
+                if (!existing.contains(next)) {
                     airlines.add(next);
                 }
             }
@@ -90,7 +93,7 @@ public class CrawlerImpl implements Crawler {
                 String name = String.join("", parts).replaceAll("\"", "").trim();
                 Market next = new Market(name, id);
                 //Checks if Market lies in the USA
-                if(!existing.getContent().contains(next)) {
+                if (!existing.getContent().contains(next)) {
                     if (parts.length == 3 && (parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]")
                             || parts[2].replaceAll("\"", "").trim().contains("[A-Z][A-Z] [\\(]")
                             || parts[2].contains("Metropolitan Area"))) {
@@ -104,13 +107,57 @@ public class CrawlerImpl implements Crawler {
     }
 
     @Override
-    public void getRoutes(String urlToRead) throws Exception {
-        System.out.println("STARTED CRAWLING ROUTES");
-        Resources<Resource<Route>> existing = routeClient.findAll();
-        InputStream rd = (InputStream) openConnection(urlToRead, "T100D", 2015, 0);
-        Files.copy(rd, Paths.get("temp.zip"));
-        ZipFile zipFile = new ZipFile("temp.zip");
+    public void getFlights(String urlToRead, int year) throws Exception {
+        System.out.println("STARTED CRAWLING FLIGHTS");
+        String filename = "temp-ontime.zip";
+//        Resources<Resource<Route>> existing = routeClient.findAll();
+        InputStream rd = openConnection(urlToRead, "ONTIME", year, 3);
+        Files.copy(rd, Paths.get(filename));
+        ZipFile zipFile = new ZipFile(filename);
+        Enumeration entries = zipFile.entries();
+        ZipEntry zE = (ZipEntry) entries.nextElement();
+        BufferedReader br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zE)));
+        String line = br.readLine();
+        int number = 0;
+        try {
+            while ((line = br.readLine()) != null) {
+                String[] columns = line.split(",");
+                if (columns[3].equals("31703")) {
+                    // "DAY_OF_WEEK","FL_DATE","AIRLINE_ID","ORIGIN_CITY_MARKET_ID"
+                    // "DEST_CITY_MARKET_ID","DEP_DELAY_NEW","ARR_DELAY_NEW","CANCELLED"
+                    //Route route = new Route();
+                    System.out.println(line);
+                    GregorianCalendar gregorianCalendar = new GregorianCalendar(Integer.parseInt(columns[1].substring(0, 4)), Integer.parseInt(columns[1].substring(5, 7))-1, Integer.parseInt(columns[1].substring(8, 10)));
+                    System.out.println(columns[1] + " " + ++number + " " + gregorianCalendar.getTime() + ": " + columns[2] + " FROM " + columns[3] + " TO " + columns[4] + ": " + columns[5] + " " + columns[6] + " " + columns[7]);
+//                    route.setDate(gregorianCalendar.getTime());
+//                    route.setCancelled(0);
+//                    route.setDelays(0);
+//                    route.setPassengerCount((int) Double.parseDouble(columns[2]));
+//                    route.setFlightCount((int) Double.parseDouble(columns[1]));
+//                    route.setAirline(basepath + "airlines/" + columns[3]);
+//                    route.setSource(basepath + "markets/" + columns[4]);
+//                    route.setDestination(basepath + "markets/" + columns[5]);
+//                    if (!existing.getContent().contains(route)) {
+//                        routes.add(route);
+//                    }
+                }
+            }
+        } finally {
+            zipFile.close();
+            File file = new File(filename);
+            file.delete();
+        }
+        System.out.println("CRAWLING FLIGHTS DONE");
+    }
 
+    @Override
+    public void getRoutes(String urlToRead, int year) throws Exception {
+        System.out.println("STARTED CRAWLING ROUTES");
+        String filename = "temp-t100d.zip";
+        Resources<Resource<Route>> existing = routeClient.findAll();
+        InputStream rd = openConnection(urlToRead, "T100D", year, 0);
+        Files.copy(rd, Paths.get(filename));
+        ZipFile zipFile = new ZipFile(filename);
         Enumeration entries = zipFile.entries();
         ZipEntry zE = (ZipEntry) entries.nextElement();
         BufferedReader br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zE)));
@@ -123,7 +170,7 @@ public class CrawlerImpl implements Crawler {
                     // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
                     // "DEST_CITY_MARKET_ID","MONTH
                     Route route = new Route();
-                    GregorianCalendar gregorianCalendar = new GregorianCalendar(2015, Integer.parseInt(columns[6]), 1);
+                    GregorianCalendar gregorianCalendar = new GregorianCalendar(year, Integer.parseInt(columns[6]), 1);
                     route.setDate(gregorianCalendar.getTime());
                     route.setCancelled(0);
                     route.setDelays(0);
@@ -139,7 +186,7 @@ public class CrawlerImpl implements Crawler {
             }
         } finally {
             zipFile.close();
-            File file = new File("temp.zip");
+            File file = new File(filename);
             file.delete();
         }
         System.out.println("CRAWLING ROUTES DONE");
@@ -158,7 +205,7 @@ public class CrawlerImpl implements Crawler {
             }
         }
         airlines.clear();
-        for(Airline airline : usedAirlines){
+        for (Airline airline : usedAirlines) {
             sendAirlineToBackend(airline);
         }
 
@@ -172,7 +219,7 @@ public class CrawlerImpl implements Crawler {
                 }
             }
         }
-        for(Market market: usedMarkets){
+        for (Market market : usedMarkets) {
             sendMarketToBackend(market);
         }
         markets.clear();
@@ -229,7 +276,7 @@ public class CrawlerImpl implements Crawler {
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("UserTableName", charset), URLEncoder.encode("T_100_Domestic_Segment__All_Carriers", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("DBShortName", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("RawDataTable", charset), URLEncoder.encode("T_T100D_SEGMENT_ALL_CARRIER", charset)));
-            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode("SELECT DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH FROM  T_T100D_SEGMENT_ALL_CARRIER WHERE YEAR=2015", charset)));
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode("SELECT DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH FROM  T_T100D_SEGMENT_ALL_CARRIER WHERE YEAR="+year, charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("varlist", charset), URLEncoder.encode("DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("grouplist", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("suml", charset), URLEncoder.encode("", charset)));
@@ -240,7 +287,7 @@ public class CrawlerImpl implements Crawler {
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("time", charset), URLEncoder.encode("All\\240Months", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("timename", charset), URLEncoder.encode("Month", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("GEOGRAPHY", charset), URLEncoder.encode("All", charset)));
-            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("XYEAR", charset), URLEncoder.encode(""+year, charset)));
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("XYEAR", charset), URLEncoder.encode("" + year, charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("FREQUENCY", charset), URLEncoder.encode("All", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("VarName", charset), URLEncoder.encode("DEPARTURES_SCHEDULED", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("DepScheduled", charset)));
@@ -351,7 +398,9 @@ public class CrawlerImpl implements Crawler {
     /**
      * Configures the HttpURLConnection for the on time table.
      *
-     * @param conn the Connection to be configured
+     * @param conn  the Connection to be configured
+     * @param year  the year to be crawled (no offset, e.g. 2015 translates to 2015)
+     * @param month the month to be crawled. Range 1-12.
      * @throws IOException
      */
     private void setReqPropONTIME(HttpURLConnection conn, int year, int month) throws IOException {
@@ -370,7 +419,7 @@ public class CrawlerImpl implements Crawler {
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("UserTableName", charset), URLEncoder.encode("On_Time_Performance", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("DBShortName", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("RawDataTable", charset), URLEncoder.encode("T_ONTIME", charset)));
-            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode(" SELECT DAY_OF_WEEK,FL_DATE,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,DEP_DELAY_NEW,ARR_DELAY_NEW,CANCELLED FROM  T_ONTIME WHERE Month =1 AND YEAR=2015", charset)));
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode(" SELECT DAY_OF_WEEK,FL_DATE,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,DEP_DELAY_NEW,ARR_DELAY_NEW,CANCELLED FROM  T_ONTIME WHERE Month ="+month+" AND YEAR="+year, charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("varlist", charset), URLEncoder.encode("DAY_OF_WEEK,FL_DATE,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,DEP_DELAY_NEW,ARR_DELAY_NEW,CANCELLED", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("grouplist", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("suml", charset), URLEncoder.encode("", charset)));
@@ -378,11 +427,11 @@ public class CrawlerImpl implements Crawler {
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("filter1", charset), URLEncoder.encode("title=", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("filter2", charset), URLEncoder.encode("title=", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("geo", charset), URLEncoder.encode("All ", charset)));
-            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("time", charset), URLEncoder.encode("January", charset)));
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("time", charset), URLEncoder.encode(Month.of(month).getDisplayName(TextStyle.FULL, Locale.ENGLISH), charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("timename", charset), URLEncoder.encode("Month", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("GEOGRAPHY", charset), URLEncoder.encode("All", charset)));
-            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("XYEAR", charset), URLEncoder.encode(""+year, charset)));
-            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("FREQUENCY", charset), URLEncoder.encode(""+month, charset)));
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("XYEAR", charset), URLEncoder.encode("" + year, charset)));
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("FREQUENCY", charset), URLEncoder.encode("" + month, charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Year", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("VarType", charset), URLEncoder.encode("Num", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("VarDesc", charset), URLEncoder.encode("Quarter", charset)));

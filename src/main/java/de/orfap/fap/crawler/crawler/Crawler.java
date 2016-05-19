@@ -11,6 +11,7 @@ import org.springframework.hateoas.Resource;
 public interface Crawler {
     /**
      * Crawlsings the airlines, as in crawling & parsing.
+     *
      * @param urlToRead where to read
      * @throws Exception
      */
@@ -18,6 +19,7 @@ public interface Crawler {
 
     /**
      * Crawlsing the markets, as in crawling & parsing.
+     *
      * @param urlToRead where to read
      * @throws Exception
      */
@@ -25,18 +27,31 @@ public interface Crawler {
 
     /**
      * Crawlsing the routes, as in crawling & parsing.
+     *
      * @param urlToRead where to read
+     * @param year      the year to be crawled
      * @throws Exception
      */
-    void getRoutes(String urlToRead) throws Exception;
+    void getRoutes(String urlToRead, int year) throws Exception;
+
+    /**
+     * Crawlsing the Flights, as in crawling & parsing.
+     *
+     * @param urlToRead where to read
+     * @param year      the year to be crawled
+     * @throws Exception
+     */
+    void getFlights(String urlToRead, int year) throws Exception;
 
     /**
      * Sends the crawsinged (as in crawled & parsed) airlines, markets & routes to the backend.
      * Airlines & markets not mentioned in the routes are not sent to the backend.
      */
     public void sendDataToBackend();
+
     /**
      * Sends an airline to the backend.
+     *
      * @param airline
      * @return
      */
@@ -44,6 +59,7 @@ public interface Crawler {
 
     /**
      * Sends a market to the backend.
+     *
      * @param market
      * @return
      */
@@ -51,6 +67,7 @@ public interface Crawler {
 
     /**
      * Sends a route to the backend.
+     *
      * @param route
      * @return
      */
