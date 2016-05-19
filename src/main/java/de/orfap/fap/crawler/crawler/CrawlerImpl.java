@@ -61,7 +61,7 @@ public class CrawlerImpl implements Crawler {
 
     @Override
     public void getAirlines(String urlToRead) throws Exception {
-        System.out.println("STARTING CREATION AIRLINES");
+        System.out.println("STARTING CRAWLING AIRLINES");
         BufferedReader rd = new BufferedReader(new InputStreamReader(openConnection(urlToRead, "csv", 0, 0)));
         String line;
         while ((line = rd.readLine()) != null) {
@@ -72,12 +72,12 @@ public class CrawlerImpl implements Crawler {
             }
         }
         rd.close();
-        System.out.println("CREATION DONE");
+        System.out.println("CRAWLING DONE");
     }
 
     @Override
     public void getMarkets(String urlToRead) throws Exception {
-        System.out.println("STARTING CREATION MARKETS");
+        System.out.println("STARTING CRAWLING MARKETS");
         BufferedReader rd = new BufferedReader(new InputStreamReader(openConnection(urlToRead, "csv", 0, 0)));
         String line;
         while ((line = rd.readLine()) != null) {
@@ -103,7 +103,6 @@ public class CrawlerImpl implements Crawler {
     public void getFlights(String urlToRead, int year) throws Exception {
         System.out.println("STARTED CRAWLING FLIGHTS");
         String filename = "temp-ontime.zip";
-//        Resources<Resource<Route>> existing = routeClient.findAll();
         InputStream rd = openConnection(urlToRead, "ONTIME", year, 3);
         Files.copy(rd, Paths.get(filename));
         ZipFile zipFile = new ZipFile(filename);
