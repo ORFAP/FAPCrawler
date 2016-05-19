@@ -6,6 +6,8 @@ import de.orfap.fap.crawler.domain.Route;
 import de.orfap.fap.crawler.feign.AirlineClient;
 import de.orfap.fap.crawler.feign.MarketClient;
 import de.orfap.fap.crawler.feign.RouteClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.Resource;
@@ -41,6 +43,7 @@ import java.util.zip.ZipFile;
  */
 @Service
 public class CrawlerImpl implements Crawler {
+    Logger LOG = LoggerFactory.getLogger(CrawlerImpl.class);
     private final ArrayList<Market> markets = new ArrayList<>();
     private final ArrayList<Airline> airlines = new ArrayList<>();
     private final ArrayList<Route> routes = new ArrayList<>();
@@ -55,7 +58,7 @@ public class CrawlerImpl implements Crawler {
 
     @Override
     public void getAirlines(String urlToRead) throws Exception {
-        System.out.println("STARTED CRAWLING AIRLINES");
+        LOG.info("STARTED CRAWLING AIRLINES");
         BufferedReader rd = new BufferedReader(new InputStreamReader(openConnection(urlToRead, "csv", 0, 0)));
         String line;
         while ((line = rd.readLine()) != null) {
@@ -66,12 +69,12 @@ public class CrawlerImpl implements Crawler {
             }
         }
         rd.close();
-        System.out.println("CRAWLING AIRLINES DONE: " + airlines.size() + " Airlines crawled");
+        LOG.info("CRAWLING AIRLINES DONE: " + airlines.size() + " Airlines crawled");
     }
 
     @Override
     public void getMarkets(String urlToRead) throws Exception {
-        System.out.println("STARTED CRAWLING MARKETS");
+        LOG.info("STARTED CRAWLING MARKETS");
         BufferedReader rd = new BufferedReader(new InputStreamReader(openConnection(urlToRead, "csv", 0, 0)));
         String line;
         while ((line = rd.readLine()) != null) {
@@ -90,12 +93,12 @@ public class CrawlerImpl implements Crawler {
             }
         }
         rd.close();
-        System.out.println("CRAWLING MARKETS DONE: " + markets.size() + " markets crawled.");
+        LOG.info("CRAWLING MARKETS DONE: " + markets.size() + " markets crawled.");
     }
 
     @Override
     public void getFlights(String urlToRead, int year) throws Exception {
-        System.out.println("STARTED CRAWLING FLIGHTS");
+        LOG.info("STARTED CRAWLING FLIGHTS");
         String filename = "temp-ontime.zip";
         InputStream rd = openConnection(urlToRead, "ONTIME", year, 3);
         Files.copy(rd, Paths.get(filename));
@@ -112,9 +115,9 @@ public class CrawlerImpl implements Crawler {
                     // "DAY_OF_WEEK","FL_DATE","AIRLINE_ID","ORIGIN_CITY_MARKET_ID"
                     // "DEST_CITY_MARKET_ID","DEP_DELAY_NEW","ARR_DELAY_NEW","CANCELLED"
                     //Route route = new Route();
-                    System.out.println(line);
+                    LOG.debug(line);
                     GregorianCalendar gregorianCalendar = new GregorianCalendar(Integer.parseInt(columns[1].substring(0, 4)), Integer.parseInt(columns[1].substring(5, 7)) - 1, Integer.parseInt(columns[1].substring(8, 10)));
-                    System.out.println(columns[1] + " " + ++number + " " + gregorianCalendar.getTime() + ": " + columns[2] + " FROM " + columns[3] + " TO " + columns[4] + ": " + columns[5] + " " + columns[6] + " " + columns[7]);
+                    LOG.debug(columns[1] + " " + ++number + " " + gregorianCalendar.getTime() + ": " + columns[2] + " FROM " + columns[3] + " TO " + columns[4] + ": " + columns[5] + " " + columns[6] + " " + columns[7]);
 //                    route.setDate(gregorianCalendar.getTime());
 //                    route.setCancelled(0);
 //                    route.setDelays(0);
@@ -133,12 +136,12 @@ public class CrawlerImpl implements Crawler {
             File file = new File(filename);
             file.delete();
         }
-        System.out.println("CRAWLING FLIGHTS DONE");
+        LOG.info("CRAWLING FLIGHTS DONE");
     }
 
     @Override
     public void getRoutes(String urlToRead, int year) throws Exception {
-        System.out.println("STARTED CRAWLING ROUTES");
+        LOG.info("STARTED CRAWLING ROUTES");
         String filename = "temp-t100d.zip";
         InputStream rd = openConnection(urlToRead, "T100D", year, 0);
         Files.copy(rd, Paths.get(filename));
@@ -172,11 +175,11 @@ public class CrawlerImpl implements Crawler {
             File file = new File(filename);
             file.delete();
         }
-        System.out.println("CRAWLING ROUTES DONE: " + routes.size() + " Routes crawled.");
+        LOG.info("CRAWLING ROUTES DONE: " + routes.size() + " Routes crawled.");
     }
 
     public void sendDataToBackend() {
-        System.out.println("STARTED SENDING Airlines, Markets & Routes to Backend");
+        LOG.info("STARTED SENDING Airlines, Markets & Routes to Backend");
         Set<Airline> usedAirlines = new HashSet<>();
         Collection<Airline> existingAirlines = airlineClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         for (Airline airline : airlines) {
@@ -190,7 +193,7 @@ public class CrawlerImpl implements Crawler {
         }
         airlines.clear();
         usedAirlines.forEach(this::sendAirlineToBackend);
-        System.out.println("SENT " + usedAirlines.size() + " Airlines to Backend, ignored " + existingAirlines.size() + " already existing");
+        LOG.debug("SENT " + usedAirlines.size() + " Airlines to Backend, ignored " + existingAirlines.size() + " already existing");
         Set<Market> usedMarkets = new HashSet<>();
         Collection<Market> existingMarkets = marketClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         for (Market market : markets) {
@@ -203,13 +206,13 @@ public class CrawlerImpl implements Crawler {
             }
         }
         usedMarkets.forEach(this::sendMarketToBackend);
-        System.out.println("SENT " + usedMarkets.size() + " Markets to Backend, ignored " + existingMarkets.size() + " already existing");
+        LOG.debug("SENT " + usedMarkets.size() + " Markets to Backend, ignored " + existingMarkets.size() + " already existing");
         markets.clear();
         Collection<Route> existingRoutes = routeClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         routes.stream().filter(route -> !existingRoutes.contains(route)).forEach(this::sendRoutesToBackend);
-        System.out.println("SENT " + (routes.stream().filter(route -> !existingRoutes.contains(route))).count() + " Routes to Backend, ignored " + existingRoutes.size() + " already existing");
+        LOG.debug("SENT " + (routes.stream().filter(route -> !existingRoutes.contains(route))).count() + " Routes to Backend, ignored " + existingRoutes.size() + " already existing");
         routes.clear();
-        System.out.println("SENDING Airlines, Markets & Routes to Backend DONE");
+        LOG.info("SENDING Airlines, Markets & Routes to Backend DONE");
     }
 
     /**
