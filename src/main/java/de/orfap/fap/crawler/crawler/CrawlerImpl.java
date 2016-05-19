@@ -125,7 +125,7 @@ public class CrawlerImpl implements Crawler {
                     // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
                     // "DEST_CITY_MARKET_ID","MONTH
                     Route route = new Route();
-                    GregorianCalendar gregorianCalendar = new GregorianCalendar(2015, Integer.parseInt(columns[6]), 1);
+                    GregorianCalendar gregorianCalendar = new GregorianCalendar(2015, Integer.parseInt(columns[6])-1, 1);
                     route.setDate(gregorianCalendar.getTime());
                     route.setCancelled((int) Math.max((Double.parseDouble(columns[0])-Double.parseDouble(columns[1])),0.0));
                     route.setDelays(0);
