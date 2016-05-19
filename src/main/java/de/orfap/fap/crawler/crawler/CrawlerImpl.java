@@ -61,7 +61,7 @@ public class CrawlerImpl implements Crawler {
 
     @Override
     public void getAirlines(String urlToRead) throws Exception {
-        System.out.println("STARTING CRAWLING AIRLINES");
+        System.out.println("STARTED CRAWLING AIRLINES");
         BufferedReader rd = new BufferedReader(new InputStreamReader(openConnection(urlToRead, "csv", 0, 0)));
         String line;
         while ((line = rd.readLine()) != null) {
@@ -72,12 +72,12 @@ public class CrawlerImpl implements Crawler {
             }
         }
         rd.close();
-        System.out.println("CRAWLING DONE");
+        System.out.println("CRAWLING AIRLINES DONE: "+airlines.size() + " Airlines crawled");
     }
 
     @Override
     public void getMarkets(String urlToRead) throws Exception {
-        System.out.println("STARTING CRAWLING MARKETS");
+        System.out.println("STARTED CRAWLING MARKETS");
         BufferedReader rd = new BufferedReader(new InputStreamReader(openConnection(urlToRead, "csv", 0, 0)));
         String line;
         while ((line = rd.readLine()) != null) {
@@ -96,7 +96,7 @@ public class CrawlerImpl implements Crawler {
             }
         }
         rd.close();
-        System.out.println("CRAWLING MARKETS DONE");
+        System.out.println("CRAWLING MARKETS DONE: "+markets.size()+" markets crawled.");
     }
 
     @Override
@@ -156,7 +156,7 @@ public class CrawlerImpl implements Crawler {
         try {
             while ((line = br.readLine()) != null) {
                 String[] columns = line.split(",");
-                if (!line.contains(",,") && columns[4].equals("31703")) {
+                if (!line.contains(",,") && columns[4].equals("31703") && Double.parseDouble(columns[2]) > 0) {
                     // DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
                     // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
                     // "DEST_CITY_MARKET_ID","MONTH
@@ -178,7 +178,7 @@ public class CrawlerImpl implements Crawler {
             File file = new File(filename);
             file.delete();
         }
-        System.out.println("CRAWLING ROUTES DONE");
+        System.out.println("CRAWLING ROUTES DONE: "+routes.size() + " Routes crawled.");
     }
 
     public void sendDataToBackend() {
@@ -196,6 +196,7 @@ public class CrawlerImpl implements Crawler {
         }
         airlines.clear();
         usedAirlines.forEach(this::sendAirlineToBackend);
+        System.out.println("SENT "+usedAirlines.size()+" Airlines to Backend, ignored "+existingAirlines.size()+" already existing");
         Set<Market> usedMarkets = new HashSet<>();
         Collection<Market> existingMarkets = marketClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         for (Market market : markets) {
@@ -208,9 +209,11 @@ public class CrawlerImpl implements Crawler {
             }
         }
         usedMarkets.forEach(this::sendMarketToBackend);
+        System.out.println("SENT "+usedMarkets.size()+" Markets to Backend, ignored "+existingMarkets.size()+" already existing");
         markets.clear();
         Collection<Route> existingRoutes = routeClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         routes.stream().filter(route -> !existingRoutes.contains(route)).forEach(this::sendRoutesToBackend);
+        System.out.println("SENT "+(routes.stream().filter(route -> !existingRoutes.contains(route))).count()+" Routes to Backend, ignored "+existingRoutes.size()+" already existing");
         routes.clear();
         System.out.println("SENDING Airlines, Markets & Routes to Backend DONE");
     }
