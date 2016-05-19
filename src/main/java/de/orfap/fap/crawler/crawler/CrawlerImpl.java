@@ -9,7 +9,6 @@ import de.orfap.fap.crawler.feign.RouteClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -63,16 +62,13 @@ public class CrawlerImpl implements Crawler {
     @Override
     public void getAirlines(String urlToRead) throws Exception {
         System.out.println("STARTING CREATION AIRLINES");
-        Collection<Airline> existing = airlineClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         BufferedReader rd = new BufferedReader(new InputStreamReader(openConnection(urlToRead, "csv", 0, 0)));
         String line;
         while ((line = rd.readLine()) != null) {
             if (line.startsWith("\"")) {
                 String[] parts = line.split(",");
                 final Airline next = new Airline(parts[1].replaceAll("(\"|\\([1-9]\\))", "").trim(), parts[0].replaceAll("\"", ""));
-                if (!existing.contains(next)) {
-                    airlines.add(next);
-                }
+                airlines.add(next);
             }
         }
         rd.close();
@@ -82,7 +78,6 @@ public class CrawlerImpl implements Crawler {
     @Override
     public void getMarkets(String urlToRead) throws Exception {
         System.out.println("STARTING CREATION MARKETS");
-        Resources<Resource<Market>> existing = marketClient.findAll();
         BufferedReader rd = new BufferedReader(new InputStreamReader(openConnection(urlToRead, "csv", 0, 0)));
         String line;
         while ((line = rd.readLine()) != null) {
@@ -93,12 +88,10 @@ public class CrawlerImpl implements Crawler {
                 String name = String.join("", parts).replaceAll("\"", "").trim();
                 Market next = new Market(name, id);
                 //Checks if Market lies in the USA
-                if (!existing.getContent().contains(next)) {
-                    if (parts.length == 3 && (parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]")
-                            || parts[2].replaceAll("\"", "").trim().contains("[A-Z][A-Z] [\\(]")
-                            || parts[2].contains("Metropolitan Area"))) {
-                        markets.add(next);
-                    }
+                if (parts.length == 3 && (parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]")
+                        || parts[2].replaceAll("\"", "").trim().contains("[A-Z][A-Z] [\\(]")
+                        || parts[2].contains("Metropolitan Area"))) {
+                    markets.add(next);
                 }
             }
         }
@@ -127,7 +120,7 @@ public class CrawlerImpl implements Crawler {
                     // "DEST_CITY_MARKET_ID","DEP_DELAY_NEW","ARR_DELAY_NEW","CANCELLED"
                     //Route route = new Route();
                     System.out.println(line);
-                    GregorianCalendar gregorianCalendar = new GregorianCalendar(Integer.parseInt(columns[1].substring(0, 4)), Integer.parseInt(columns[1].substring(5, 7))-1, Integer.parseInt(columns[1].substring(8, 10)));
+                    GregorianCalendar gregorianCalendar = new GregorianCalendar(Integer.parseInt(columns[1].substring(0, 4)), Integer.parseInt(columns[1].substring(5, 7)) - 1, Integer.parseInt(columns[1].substring(8, 10)));
                     System.out.println(columns[1] + " " + ++number + " " + gregorianCalendar.getTime() + ": " + columns[2] + " FROM " + columns[3] + " TO " + columns[4] + ": " + columns[5] + " " + columns[6] + " " + columns[7]);
 //                    route.setDate(gregorianCalendar.getTime());
 //                    route.setCancelled(0);
@@ -154,7 +147,6 @@ public class CrawlerImpl implements Crawler {
     public void getRoutes(String urlToRead, int year) throws Exception {
         System.out.println("STARTED CRAWLING ROUTES");
         String filename = "temp-t100d.zip";
-        Resources<Resource<Route>> existing = routeClient.findAll();
         InputStream rd = openConnection(urlToRead, "T100D", year, 0);
         Files.copy(rd, Paths.get(filename));
         ZipFile zipFile = new ZipFile(filename);
@@ -179,9 +171,7 @@ public class CrawlerImpl implements Crawler {
                     route.setAirline(basepath + "airlines/" + columns[3]);
                     route.setSource(basepath + "markets/" + columns[4]);
                     route.setDestination(basepath + "markets/" + columns[5]);
-                    if (!existing.getContent().contains(route)) {
-                        routes.add(route);
-                    }
+                    routes.add(route);
                 }
             }
         } finally {
@@ -195,37 +185,33 @@ public class CrawlerImpl implements Crawler {
     public void sendDataToBackend() {
         System.out.println("STARTED SENDING Airlines, Markets & Routes to Backend");
         Set<Airline> usedAirlines = new HashSet<>();
-
+        Collection<Airline> existingAirlines = airlineClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         for (Airline airline : airlines) {
             for (int i = 0; i < routes.size(); i++) {
-                if (routes.get(i).getAirline().equals(basepath + "airlines/" + airline.getId())) {
+                if (routes.get(i).getAirline().equals(basepath + "airlines/" + airline.getId())
+                        && !existingAirlines.contains(airline)) {
                     usedAirlines.add(airline);
                     i = routes.size();
                 }
             }
         }
         airlines.clear();
-        for (Airline airline : usedAirlines) {
-            sendAirlineToBackend(airline);
-        }
-
+        usedAirlines.forEach(this::sendAirlineToBackend);
         Set<Market> usedMarkets = new HashSet<>();
+        Collection<Market> existingMarkets = marketClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         for (Market market : markets) {
             for (int i = 0; i < routes.size(); i++) {
-                if (routes.get(i).getDestination().equals(basepath + "markets/" + market.getId())
-                        || routes.get(i).getSource().equals(basepath + "markets/" + market.getId())) {
+                if (!existingMarkets.contains(market) && (routes.get(i).getDestination().equals(basepath + "markets/" + market.getId())
+                        || routes.get(i).getSource().equals(basepath + "markets/" + market.getId()))) {
                     usedMarkets.add(market);
                     i = routes.size();
                 }
             }
         }
-        for (Market market : usedMarkets) {
-            sendMarketToBackend(market);
-        }
+        usedMarkets.forEach(this::sendMarketToBackend);
         markets.clear();
-        for (Route route : routes) {
-            sendRoutesToBackend(route);
-        }
+        Collection<Route> existingRoutes = routeClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
+        routes.stream().filter(route -> !existingRoutes.contains(route)).forEach(this::sendRoutesToBackend);
         routes.clear();
         System.out.println("SENDING Airlines, Markets & Routes to Backend DONE");
     }
@@ -238,6 +224,7 @@ public class CrawlerImpl implements Crawler {
      * @return postHTTPforming InputStream
      * @throws IOException
      */
+
     private InputStream openConnection(String urlToRead, String method, int year, int month) throws IOException {
         URL url = new URL(urlToRead);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -276,7 +263,7 @@ public class CrawlerImpl implements Crawler {
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("UserTableName", charset), URLEncoder.encode("T_100_Domestic_Segment__All_Carriers", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("DBShortName", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("RawDataTable", charset), URLEncoder.encode("T_T100D_SEGMENT_ALL_CARRIER", charset)));
-            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode("SELECT DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH FROM  T_T100D_SEGMENT_ALL_CARRIER WHERE YEAR="+year, charset)));
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode("SELECT DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH FROM  T_T100D_SEGMENT_ALL_CARRIER WHERE YEAR=" + year, charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("varlist", charset), URLEncoder.encode("DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("grouplist", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("suml", charset), URLEncoder.encode("", charset)));
@@ -419,7 +406,7 @@ public class CrawlerImpl implements Crawler {
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("UserTableName", charset), URLEncoder.encode("On_Time_Performance", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("DBShortName", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("RawDataTable", charset), URLEncoder.encode("T_ONTIME", charset)));
-            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode(" SELECT DAY_OF_WEEK,FL_DATE,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,DEP_DELAY_NEW,ARR_DELAY_NEW,CANCELLED FROM  T_ONTIME WHERE Month ="+month+" AND YEAR="+year, charset)));
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode(" SELECT DAY_OF_WEEK,FL_DATE,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,DEP_DELAY_NEW,ARR_DELAY_NEW,CANCELLED FROM  T_ONTIME WHERE Month =" + month + " AND YEAR=" + year, charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("varlist", charset), URLEncoder.encode("DAY_OF_WEEK,FL_DATE,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,DEP_DELAY_NEW,ARR_DELAY_NEW,CANCELLED", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("grouplist", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("suml", charset), URLEncoder.encode("", charset)));
