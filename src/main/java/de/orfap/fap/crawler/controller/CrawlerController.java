@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Created by Arne on 15.05.2016.
  */
+@SuppressWarnings("DefaultFileTemplate")
 @RestController
 public class CrawlerController {
 

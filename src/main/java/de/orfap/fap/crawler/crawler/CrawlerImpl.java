@@ -41,16 +41,21 @@ import java.util.zip.ZipFile;
 /**
  * Created by Arne on 13.04.2016.
  */
+@SuppressWarnings({"ALL", "DefaultFileTemplate"})
 @Service
 public class CrawlerImpl implements Crawler {
-    Logger LOG = LoggerFactory.getLogger(CrawlerImpl.class);
+    private final Logger LOG = LoggerFactory.getLogger(CrawlerImpl.class);
     private final ArrayList<Market> markets = new ArrayList<>();
     private final ArrayList<Airline> airlines = new ArrayList<>();
     private final ArrayList<Route> routes = new ArrayList<>();
+    //Warnings suppressed because of: No beans needed
+    @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     private AirlineClient airlineClient;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     private MarketClient marketClient;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     private RouteClient routeClient;
     @Value("${fap.backend.basePath}")
@@ -106,7 +111,8 @@ public class CrawlerImpl implements Crawler {
         Enumeration entries = zipFile.entries();
         ZipEntry zE = (ZipEntry) entries.nextElement();
         BufferedReader br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zE)));
-        String line = br.readLine();
+        //noinspection UnusedAssignment Needs to be called to erase first line of file
+        @SuppressWarnings("UnusedAssignment") String line = br.readLine();
         int number = 0;
         try {
             while ((line = br.readLine()) != null) {
@@ -132,8 +138,10 @@ public class CrawlerImpl implements Crawler {
                 }
             }
         } finally {
+            //noinspection ThrowFromFinallyBlock
             zipFile.close();
             File file = new File(filename);
+            //noinspection ResultOfMethodCallIgnored
             file.delete();
         }
         LOG.info("CRAWLING FLIGHTS DONE");
@@ -149,7 +157,8 @@ public class CrawlerImpl implements Crawler {
         Enumeration entries = zipFile.entries();
         ZipEntry zE = (ZipEntry) entries.nextElement();
         BufferedReader br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zE)));
-        String line = br.readLine();
+        //noinspection UnusedAssignment Needs to be called to erase first line of file
+        @SuppressWarnings("UnusedAssignment") String line = br.readLine();
         try {
             while ((line = br.readLine()) != null) {
                 String[] columns = line.split(",");
@@ -173,6 +182,7 @@ public class CrawlerImpl implements Crawler {
         } finally {
             zipFile.close();
             File file = new File(filename);
+            //noinspection ResultOfMethodCallIgnored
             file.delete();
         }
         LOG.info("CRAWLING ROUTES DONE: " + routes.size() + " Routes crawled.");

@@ -8,6 +8,7 @@ import java.util.Date;
 /**
  * Created by Arne on 13.04.2016.
  */
+@SuppressWarnings("DefaultFileTemplate")
 public class Route {
 
     @NotNull
@@ -113,6 +114,7 @@ public class Route {
         this.destination = destination;
     }
 
+    @SuppressWarnings("SimplifiableIfStatement")
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -132,9 +134,7 @@ public class Route {
             return false;
         if (!this.getDate().equals(other.getDate()))
             return false;
-        if (!this.getSource().equals(other.getSource()))
-            return false;
-        return this.getDestination().equals(other.getDestination());
+        return this.getSource().equals(other.getSource()) && this.getDestination().equals(other.getDestination());
     }
 
     @Override

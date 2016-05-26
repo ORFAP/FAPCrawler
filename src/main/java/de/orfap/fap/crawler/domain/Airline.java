@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 /**
  * Created by Arne on 13.04.2016.
  */
+@SuppressWarnings("DefaultFileTemplate")
 public class Airline {
 
     private String name;
@@ -43,9 +44,7 @@ public class Airline {
         if (this.getClass() != o.getClass())
             return false;
         Airline other = (Airline) o;
-        if (!this.getName().equals(other.getName()))
-            return false;
-        return this.getId().equals(other.getId());
+        return this.getName().equals(other.getName()) && this.getId().equals(other.getId());
     }
 
     @Override

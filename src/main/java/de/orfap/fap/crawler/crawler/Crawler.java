@@ -8,6 +8,7 @@ import org.springframework.hateoas.Resource;
 /**
  * Created by Arne on 13.04.2016.
  */
+@SuppressWarnings("DefaultFileTemplate")
 public interface Crawler {
     /**
      * Crawlsings the airlines, as in crawling & parsing.
@@ -15,7 +16,7 @@ public interface Crawler {
      * @param urlToRead where to read
      * @throws Exception
      */
-    void getAirlines(String urlToRead) throws Exception;
+    void getAirlines(@SuppressWarnings("SameParameterValue") String urlToRead) throws Exception;
 
     /**
      * Crawlsings the markets, as in crawling & parsing.
@@ -23,7 +24,7 @@ public interface Crawler {
      * @param urlToRead where to read
      * @throws Exception
      */
-    void getMarkets(String urlToRead) throws Exception;
+    void getMarkets(@SuppressWarnings("SameParameterValue") String urlToRead) throws Exception;
 
     /**
      * Crawlsings the routes, as in crawling & parsing.
@@ -32,7 +33,7 @@ public interface Crawler {
      * @param year      the year to be crawled
      * @throws Exception
      */
-    void getRoutes(String urlToRead, int year) throws Exception;
+    void getRoutes(@SuppressWarnings("SameParameterValue") String urlToRead, int year) throws Exception;
 
     /**
      * Crawlsings the Flights, as in crawling & parsing.
