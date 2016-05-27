@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Created by Arne on 15.05.2016.
  */
+@SuppressWarnings("DefaultFileTemplate")
 @RestController
 public class CrawlerController {
 
@@ -18,14 +19,13 @@ public class CrawlerController {
     Crawler crawler;
 
     @RequestMapping(value = "/crawlIntoBackend", method = RequestMethod.GET)
-    public void crawlIntoBackend(@Param("year")String year) throws Exception{
+    public void crawlIntoBackend(@Param("year") String year) throws Exception {
         int usedYear;
-        try{
-            usedYear=Integer.parseInt(year);
-        }catch (NumberFormatException nfe){
+        try {
+            usedYear = Integer.parseInt(year);
+        } catch (NumberFormatException nfe) {
             throw new IllegalArgumentException("year must be a numerical value");
         }
-        System.out.println("START");
         crawler.getAirlines("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID");
         crawler.getMarkets("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID");
         crawler.getRoutes("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0", usedYear);

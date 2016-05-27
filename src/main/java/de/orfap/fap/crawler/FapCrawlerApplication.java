@@ -6,9 +6,9 @@ import org.springframework.cloud.netflix.feign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableFeignClients
-public class FapCrawlerApplication{
+public class FapCrawlerApplication {
 
-  public static void main(String[] args) {
-    SpringApplication.run(FapCrawlerApplication.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(FapCrawlerApplication.class, args);
+    }
 }

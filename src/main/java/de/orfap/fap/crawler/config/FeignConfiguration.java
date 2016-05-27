@@ -23,22 +23,22 @@ import org.springframework.hateoas.hal.Jackson2HalModule;
 @Configuration
 public class FeignConfiguration {
 
-  ObjectMapper mapper = new ObjectMapper()
-      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-      .registerModule(new Jackson2HalModule());
+    private final ObjectMapper mapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .registerModule(new Jackson2HalModule());
 
 
-  @Bean
-  @ConditionalOnMissingBean
-  Encoder getFeignEncoder(){
+    @Bean
+    @ConditionalOnMissingBean
+    Encoder getFeignEncoder() {
 
-    return new JacksonEncoder(mapper);
-  }
+        return new JacksonEncoder(mapper);
+    }
 
-  @Bean
-  @ConditionalOnMissingBean
-  Decoder getFeignDecoder(){
+    @Bean
+    @ConditionalOnMissingBean
+    Decoder getFeignDecoder() {
 
-    return new JacksonDecoder(mapper);
-  }
+        return new JacksonDecoder(mapper);
+    }
 }

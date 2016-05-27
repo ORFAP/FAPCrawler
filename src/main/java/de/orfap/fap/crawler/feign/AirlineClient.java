@@ -20,14 +20,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(url = "${fap.backend.basePath}", name = "airlines")
 public interface AirlineClient {
 
-  @RequestMapping(method = RequestMethod.POST, value = "/airlines", consumes = "application/json")
-  Resource<Airline> create(Airline airline);
+    @RequestMapping(method = RequestMethod.POST, value = "/airlines", consumes = "application/json")
+    Resource<Airline> create(Airline airline);
 
-  @RequestMapping(method = RequestMethod.GET, value = "/airlines/{id}", consumes = "application/json")
-  Resource<Airline> findOne(@RequestParam("id") String id);
+    @RequestMapping(method = RequestMethod.GET, value = "/airlines/{id}", consumes = "application/json")
+    Resource<Airline> findOne(@RequestParam("id") String id);
 
-  @RequestMapping(method = RequestMethod.GET, value = "/airlines", consumes = "application/json")
-  Resources<Resource<Airline>> findAll();
+    @RequestMapping(method = RequestMethod.GET, value = "/airlines", consumes = "application/json")
+    Resources<Resource<Airline>> findAll();
 
 //  @RequestMapping(method = RequestMethod.GET, value = "/airlines", consumes = "application/json")
 //  Resource<Airline> findById(@RequestParam String id);

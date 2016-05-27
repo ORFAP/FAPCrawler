@@ -1,4 +1,3 @@
-
 package de.orfap.fap.crawler.feign;
 
 import de.orfap.fap.crawler.domain.Market;
@@ -21,13 +20,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(url = "${fap.backend.basePath}", name = "markets")
 public interface MarketClient {
 
-  @RequestMapping(method = RequestMethod.POST, value = "/markets", consumes = "application/json")
-  Resource<Market> create(Market market);
+    @RequestMapping(method = RequestMethod.POST, value = "/markets", consumes = "application/json")
+    Resource<Market> create(Market market);
 
-  @RequestMapping(method = RequestMethod.GET, value = "/markets/{id}", consumes = "application/json")
-  Resource<Market> findOne(@RequestParam("id") String id);
+    @RequestMapping(method = RequestMethod.GET, value = "/markets/{id}", consumes = "application/json")
+    Resource<Market> findOne(@RequestParam("id") String id);
 
-  @RequestMapping(method = RequestMethod.GET, value = "/markets", consumes = "application/json")
-  Resources<Resource<Market>> findAll();
+    @RequestMapping(method = RequestMethod.GET, value = "/markets", consumes = "application/json")
+    Resources<Resource<Market>> findAll();
 
 }

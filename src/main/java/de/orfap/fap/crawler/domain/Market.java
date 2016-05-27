@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 /**
  * Created by Arne on 13.04.2016.
  */
+@SuppressWarnings("DefaultFileTemplate")
 public class Market {
 
     private String name;
@@ -12,14 +13,15 @@ public class Market {
     @Id
     private String id;
 
-    public Market() {}
+    public Market() {
+    }
 
     public Market(String name, String id) {
         this.name = name;
         this.id = id;
     }
 
-    public String getName() {
+    private String getName() {
         return name;
     }
 
@@ -36,17 +38,13 @@ public class Market {
     }
 
     @Override
-    public boolean equals(Object o){
-        if(this == o)
+    public boolean equals(Object o) {
+        if (this == o)
             return true;
-        if(this.getClass() != o.getClass())
+        if (this.getClass() != o.getClass())
             return false;
         Market other = (Market) o;
-        if(!this.getName().equals(other.getName()))
-            return false;
-        if(!this.getId().equals(other.getId()))
-            return false;
-        return true;
+        return this.getName().equals(other.getName()) && this.getId().equals(other.getId());
     }
 
     @Override

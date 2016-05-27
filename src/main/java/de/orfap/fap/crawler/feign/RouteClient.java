@@ -1,4 +1,3 @@
-
 package de.orfap.fap.crawler.feign;
 
 import de.orfap.fap.crawler.domain.Route;
@@ -21,14 +20,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FeignClient(url = "${fap.backend.basePath}", name = "routes")
 public interface RouteClient {
 
-//  @Headers(value = "text/uri-list")
-  @RequestMapping(method = RequestMethod.POST, value = "/routes", consumes = "application/json")
-  Resource<Route> create(Route route);
+    //  @Headers(value = "text/uri-list")
+    @RequestMapping(method = RequestMethod.POST, value = "/routes", consumes = "application/json")
+    Resource<Route> create(Route route);
 
-  @RequestMapping(method = RequestMethod.GET, value = "/routes/{id}", consumes = "application/json")
-  Resource<Route> findOne(@RequestParam("id") String id);
+    @RequestMapping(method = RequestMethod.GET, value = "/routes/{id}", consumes = "application/json")
+    Resource<Route> findOne(@RequestParam("id") String id);
 
-  @RequestMapping(method = RequestMethod.GET, value = "/routes", consumes = "application/json")
-  Resources<Resource<Route>> findAll();
+    @RequestMapping(method = RequestMethod.GET, value = "/routes", consumes = "application/json")
+    Resources<Resource<Route>> findAll();
 
 }
