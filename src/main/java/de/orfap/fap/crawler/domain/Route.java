@@ -66,7 +66,7 @@ public class Route {
         this.delays = delays;
     }
 
-    private double getCancelled() {
+    public double getCancelled() {
         return cancelled;
     }
 
