@@ -129,7 +129,7 @@ public class CrawlerImpl implements Crawler {
                         flight.setDate(gregorianCalendar.getTime());
                         flight.setCancelled(Double.parseDouble(columns[7]));
                         //Cancelled Flights have empty dep and arr delay fields
-                        if (flight.getCancelled() == 0) {
+                        if (Double.parseDouble(columns[7]) == 0) {
                             //Some dep delay fields are empty
                             if (!columns[5].isEmpty()) {
                                 delay += Double.parseDouble(columns[5]);
@@ -156,7 +156,7 @@ public class CrawlerImpl implements Crawler {
                 //noinspection ResultOfMethodCallIgnored
                 file.delete();
             }
-            LOG.info("Interloop update: " + year + ":" + month + " crawled.");
+            LOG.debug("Interloop update: " + year + ":" + month + " crawled.");
         }
         LOG.info("CRAWLING FLIGHTS DONE " + flights.size() + " Flights of " + year + " crawled.");
     }
