@@ -50,7 +50,7 @@ public class Route {
         this.destination = destination;
     }
 
-    private Date getDate() {
+    public Date getDate() {
         return date;
     }
 
@@ -58,7 +58,7 @@ public class Route {
         this.date = date;
     }
 
-    private double getDelays() {
+    public double getDelays() {
         return delays;
     }
 
@@ -66,7 +66,7 @@ public class Route {
         this.delays = delays;
     }
 
-    private double getCancelled() {
+    public double getCancelled() {
         return cancelled;
     }
 
@@ -74,7 +74,7 @@ public class Route {
         this.cancelled = cancelled;
     }
 
-    private double getPassengerCount() {
+    public double getPassengerCount() {
         return passengerCount;
     }
 
@@ -82,7 +82,7 @@ public class Route {
         this.passengerCount = passengerCount;
     }
 
-    private double getFlightCount() {
+    public double getFlightCount() {
         return flightCount;
     }
 

@@ -71,6 +71,9 @@ public class CrawlerImpl implements Crawler {
             if (line.startsWith("\"")) {
                 String[] parts = line.split(",");
                 final Airline next = new Airline(parts[1].replaceAll("(\"|\\([1-9]\\))", "").trim(), parts[0].replaceAll("\"", ""));
+                if(next.getId()==null || next.getName()==null){
+                    throw new AssertionError("This is bad");
+                }
                 airlines.add(next);
             }
         }
@@ -90,6 +93,9 @@ public class CrawlerImpl implements Crawler {
                 parts[0] = "";
                 String name = String.join("", parts).replaceAll("\"", "").trim();
                 Market next = new Market(name, id);
+                if(next.getId()==null || next.getName()==null){
+                    throw new AssertionError("This is bad");
+                }
                 //Checks if Market lies in the USA
                 if (parts.length == 3 && (parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]")
                         || parts[2].replaceAll("\"", "").trim().contains("[A-Z][A-Z] [\\(]")
@@ -191,6 +197,9 @@ public class CrawlerImpl implements Crawler {
                     route.setAirline(basepath + "airlines/" + columns[3]);
                     route.setSource(basepath + "markets/" + columns[4]);
                     route.setDestination(basepath + "markets/" + columns[5]);
+                    if(route.getAirline()==null || route.getDate()==null|| route.getDestination()==null|| route.getSource()==null){
+                        throw new AssertionError("This is bad");
+                    }
                     routes.add(route);
                 }
             }
