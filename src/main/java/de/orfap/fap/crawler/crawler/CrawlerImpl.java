@@ -106,6 +106,7 @@ public class CrawlerImpl implements Crawler {
         LOG.info("STARTED CRAWLING FLIGHTS");
         String filename = "temp-ontime.zip";
         InputStream rd = openConnection(urlToRead, "ONTIME", year, 3);
+        Route route;
         Files.copy(rd, Paths.get(filename));
         ZipFile zipFile = new ZipFile(filename);
         Enumeration entries = zipFile.entries();
@@ -120,10 +121,9 @@ public class CrawlerImpl implements Crawler {
                 if (columns[3].equals("31703")) {
                     // "DAY_OF_WEEK","FL_DATE","AIRLINE_ID","ORIGIN_CITY_MARKET_ID"
                     // "DEST_CITY_MARKET_ID","DEP_DELAY_NEW","ARR_DELAY_NEW","CANCELLED"
-                    //Route route = new Route();
+                    route = new Route();
                     LOG.debug(line);
                     GregorianCalendar gregorianCalendar = new GregorianCalendar(Integer.parseInt(columns[1].substring(0, 4)), Integer.parseInt(columns[1].substring(5, 7)) - 1, Integer.parseInt(columns[1].substring(8, 10)));
-                    LOG.debug(columns[1] + " " + ++number + " " + gregorianCalendar.getTime() + ": " + columns[2] + " FROM " + columns[3] + " TO " + columns[4] + ": " + columns[5] + " " + columns[6] + " " + columns[7]);
 //                    route.setDate(gregorianCalendar.getTime());
 //                    route.setCancelled(0);
 //                    route.setDelays(0);
@@ -152,6 +152,7 @@ public class CrawlerImpl implements Crawler {
         LOG.info("STARTED CRAWLING ROUTES");
         String filename = "temp-t100d.zip";
         InputStream rd = openConnection(urlToRead, "T100D", year, 0);
+        Route route;
         Files.copy(rd, Paths.get(filename));
         ZipFile zipFile = new ZipFile(filename);
         Enumeration entries = zipFile.entries();
@@ -166,13 +167,13 @@ public class CrawlerImpl implements Crawler {
                     // DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
                     // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
                     // "DEST_CITY_MARKET_ID","MONTH
-                    Route route = new Route();
+                    route = new Route();
                     GregorianCalendar gregorianCalendar = new GregorianCalendar(year, Integer.parseInt(columns[6]) -1, 1);
                     route.setDate(gregorianCalendar.getTime());
                     route.setCancelled(0);
                     route.setDelays(0);
-                    route.setPassengerCount((int) Double.parseDouble(columns[2]));
-                    route.setFlightCount((int) Double.parseDouble(columns[1]));
+                    route.setPassengerCount(Double.parseDouble(columns[2]));
+                    route.setFlightCount(Double.parseDouble(columns[1]));
                     route.setAirline(basepath + "airlines/" + columns[3]);
                     route.setSource(basepath + "markets/" + columns[4]);
                     route.setDestination(basepath + "markets/" + columns[5]);

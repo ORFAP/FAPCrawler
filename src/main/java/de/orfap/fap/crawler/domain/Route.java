@@ -16,16 +16,16 @@ public class Route {
     private Date date;
 
     @Min(0)
-    private int delays;
+    private double delays;
 
     @Min(0)
-    private int cancelled;
+    private double cancelled;
 
     @Min(0)
-    private int passengerCount;
+    private double passengerCount;
 
     @Min(0)
-    private int flightCount;
+    private double flightCount;
 
     @NotNull
     private String airline;
@@ -39,7 +39,7 @@ public class Route {
     public Route() {
     }
 
-    public Route(Date date, int delays, int cancelled, int passengerCount, int flightCount, String airline, String source, String destination) {
+    public Route(Date date, double delays, double cancelled, double passengerCount, double flightCount, String airline, String source, String destination) {
         this.date = date;
         this.delays = delays;
         this.cancelled = cancelled;
@@ -58,35 +58,35 @@ public class Route {
         this.date = date;
     }
 
-    private int getDelays() {
+    private double getDelays() {
         return delays;
     }
 
-    public void setDelays(int delays) {
+    public void setDelays(double delays) {
         this.delays = delays;
     }
 
-    private int getCancelled() {
+    private double getCancelled() {
         return cancelled;
     }
 
-    public void setCancelled(int cancelled) {
+    public void setCancelled(double cancelled) {
         this.cancelled = cancelled;
     }
 
-    private int getPassengerCount() {
+    private double getPassengerCount() {
         return passengerCount;
     }
 
-    public void setPassengerCount(int passengerCount) {
+    public void setPassengerCount(double passengerCount) {
         this.passengerCount = passengerCount;
     }
 
-    private int getFlightCount() {
+    private double getFlightCount() {
         return flightCount;
     }
 
-    public void setFlightCount(int flightCount) {
+    public void setFlightCount(double flightCount) {
         this.flightCount = flightCount;
     }
 
