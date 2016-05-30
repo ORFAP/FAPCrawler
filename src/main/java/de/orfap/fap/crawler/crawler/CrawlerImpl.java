@@ -108,7 +108,7 @@ public class CrawlerImpl implements Crawler {
         String filename = "temp-ontime.zip";
         Route flight;
         String[] columns = new String[0];
-        double delay=0;
+        double delay = 0;
         for (int month = 1; month <= 12; month++) {
             InputStream rd = openConnection(urlToRead, "ONTIME", year, month);
             Files.copy(rd, Paths.get(filename));
@@ -125,22 +125,21 @@ public class CrawlerImpl implements Crawler {
                         // "DAY_OF_WEEK","FL_DATE","AIRLINE_ID","ORIGIN_CITY_MARKET_ID"
                         // "DEST_CITY_MARKET_ID","DEP_DELAY_NEW","ARR_DELAY_NEW","CANCELLED"
                         flight = new Route();
-                        LOG.debug(line);
                         GregorianCalendar gregorianCalendar = new GregorianCalendar(Integer.parseInt(columns[1].substring(0, 4)), Integer.parseInt(columns[1].substring(5, 7)) - 1, Integer.parseInt(columns[1].substring(8, 10)));
                         flight.setDate(gregorianCalendar.getTime());
                         flight.setCancelled(Double.parseDouble(columns[7]));
                         //Cancelled Flights have empty dep and arr delay fields
                         if (flight.getCancelled() == 0) {
                             //Some dep delay fields are empty
-                            if (!columns[5].isEmpty()){
-                                delay+=Double.parseDouble(columns[5]);
+                            if (!columns[5].isEmpty()) {
+                                delay += Double.parseDouble(columns[5]);
                             }
                             //some arr delay fields are empty, too
-                            if(!columns[6].isEmpty()){
-                                delay+=Double.parseDouble(columns[6]);
+                            if (!columns[6].isEmpty()) {
+                                delay += Double.parseDouble(columns[6]);
                             }
                             flight.setDelays(delay);
-                            delay=0;
+                            delay = 0;
                         }
                         flight.setPassengerCount(0);
                         flight.setFlightCount(1);
@@ -150,13 +149,6 @@ public class CrawlerImpl implements Crawler {
                         flights.add(flight);
                     }
                 }
-            } catch (NumberFormatException nfe) {
-                for (String s : columns
-                        ) {
-                    System.out.println(s);
-                }
-                nfe.printStackTrace();
-                return;
             } finally {
                 //noinspection ThrowFromFinallyBlock
                 zipFile.close();
@@ -164,6 +156,7 @@ public class CrawlerImpl implements Crawler {
                 //noinspection ResultOfMethodCallIgnored
                 file.delete();
             }
+            LOG.info("Interloop update: " + year + ":" + month + " crawled.");
         }
         LOG.info("CRAWLING FLIGHTS DONE " + flights.size() + " Flights of " + year + " crawled.");
     }
