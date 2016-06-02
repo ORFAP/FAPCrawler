@@ -115,7 +115,7 @@ public class CrawlerImpl implements Crawler {
         Route flight;
         String[] columns = new String[0];
         double delay = 0;
-        for (int month = 1; month <= 1; month++) {
+        for (int month = 1; month <= 12; month++) {
             InputStream rd = openConnection(urlToRead, "ONTIME", year, month);
             Files.copy(rd, Paths.get(filename));
             ZipFile zipFile = new ZipFile(filename);
@@ -162,7 +162,7 @@ public class CrawlerImpl implements Crawler {
                 //noinspection ResultOfMethodCallIgnored
                 file.delete();
             }
-            LOG.debug("Interloop update: " + year + ":" + month + " crawled.");
+            LOG.info("Interloop update: " + year + ":" + month + " crawled.");
         }
         LOG.info("CRAWLING FLIGHTS DONE " + flights.size() + " Flights of " + year + " crawled.");
     }
@@ -226,9 +226,8 @@ public class CrawlerImpl implements Crawler {
             }
         }
         airlines.clear();
-        LOG.debug(usedAirlines.size() + " Airlines");
         usedAirlines.forEach(this::sendAirlineToBackend);
-        LOG.debug("SENT " + usedAirlines.size() + " Airlines to Backend, ignored " + existingAirlines.size() + " already existing");
+        LOG.info("SENT " + usedAirlines.size() + " Airlines to Backend, ignored " + existingAirlines.size() + " already existing");
         Set<Market> usedMarkets = new HashSet<>();
         Collection<Market> existingMarkets = marketClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         for (Market market : markets) {
@@ -241,14 +240,14 @@ public class CrawlerImpl implements Crawler {
             }
         }
         usedMarkets.forEach(this::sendMarketToBackend);
-        LOG.debug("SENT " + usedMarkets.size() + " Markets to Backend, ignored " + existingMarkets.size() + " already existing");
+        LOG.info("SENT " + usedMarkets.size() + " Markets to Backend, ignored " + existingMarkets.size() + " already existing");
         markets.clear();
         Collection<Route> existingRoutes = routeClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         routes.stream().filter(route -> !existingRoutes.contains(route)).forEach(this::sendRoutesToBackend);
-        //LOG.debug("SENT " + (routes.stream().filter(route -> !existingRoutes.contains(route))).count() + " Routes to Backend, ignored " + existingRoutes.size() + " already existing");
+        LOG.info("SENT " + (routes.stream().filter(route -> !existingRoutes.contains(route))).count() + " Routes to Backend, ignored " + existingRoutes.size() + " already existing");
         routes.clear();
         flights.stream().filter(flight -> !existingRoutes.contains(flight)).forEach(this::sendRoutesToBackend);
-        //LOG.debug("SENT " + (flights.stream().filter(flight -> !existingRoutes.contains(flight))).count() + " Flights to Backend, ignored " + existingRoutes.size() + " already existing");
+        LOG.info("SENT " + (flights.stream().filter(flight -> !existingRoutes.contains(flight))).count() + " Flights to Backend, ignored " + existingRoutes.size() + " already existing");
         flights.clear();
         LOG.info("SENDING Airlines, Markets, Routes & Flights to Backend DONE");
     }
