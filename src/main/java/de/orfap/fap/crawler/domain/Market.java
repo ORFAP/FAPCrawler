@@ -21,7 +21,7 @@ public class Market {
         this.id = id;
     }
 
-    private String getName() {
+    public String getName() {
         return name;
     }
 

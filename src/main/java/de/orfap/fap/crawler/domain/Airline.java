@@ -21,7 +21,7 @@ public class Airline {
         this.id = id;
     }
 
-    private String getName() {
+    public String getName() {
         return name;
     }
 

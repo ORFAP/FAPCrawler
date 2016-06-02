@@ -45,7 +45,7 @@ public interface Crawler {
     void getFlights(String urlToRead, int year) throws Exception;
 
     /**
-     * Sends the crawlsinged (as in crawled & parsed) airlines, markets & routes to the backend.
+     * Sends the crawlsinged (as in crawled & parsed) airlines, markets, routes & flights to the backend.
      * Airlines & markets not mentioned in the routes are not sent to the backend.
      */
     void sendDataToBackend();
