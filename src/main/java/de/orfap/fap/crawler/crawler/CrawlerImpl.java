@@ -115,7 +115,7 @@ public class CrawlerImpl implements Crawler {
         Route flight;
         String[] columns = new String[0];
         double delay = 0;
-        for (int month = 1; month <= 12; month++) {
+        for (int month = 1; month <= 1; month++) {
             InputStream rd = openConnection(urlToRead, "ONTIME", year, month);
             Files.copy(rd, Paths.get(filename));
             ZipFile zipFile = new ZipFile(filename);
@@ -217,7 +217,7 @@ public class CrawlerImpl implements Crawler {
         Set<Airline> usedAirlines = new HashSet<>();
         Collection<Airline> existingAirlines = airlineClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         for (Airline airline : airlines) {
-            for (int i = 0; i < routes.size(); i++) {
+            for (int i = 0; i<routes.size(); i++) {
                 if (routes.get(i).getAirline().equals(basepath + "airlines/" + airline.getId())
                         && !existingAirlines.contains(airline)) {
                     usedAirlines.add(airline);
@@ -226,6 +226,7 @@ public class CrawlerImpl implements Crawler {
             }
         }
         airlines.clear();
+        LOG.debug(usedAirlines.size() + " Airlines");
         usedAirlines.forEach(this::sendAirlineToBackend);
         LOG.debug("SENT " + usedAirlines.size() + " Airlines to Backend, ignored " + existingAirlines.size() + " already existing");
         Set<Market> usedMarkets = new HashSet<>();
@@ -244,10 +245,10 @@ public class CrawlerImpl implements Crawler {
         markets.clear();
         Collection<Route> existingRoutes = routeClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         routes.stream().filter(route -> !existingRoutes.contains(route)).forEach(this::sendRoutesToBackend);
-        LOG.debug("SENT " + (routes.stream().filter(route -> !existingRoutes.contains(route))).count() + " Routes to Backend, ignored " + existingRoutes.size() + " already existing");
+        //LOG.debug("SENT " + (routes.stream().filter(route -> !existingRoutes.contains(route))).count() + " Routes to Backend, ignored " + existingRoutes.size() + " already existing");
         routes.clear();
         flights.stream().filter(flight -> !existingRoutes.contains(flight)).forEach(this::sendRoutesToBackend);
-        LOG.debug("SENT " + (flights.stream().filter(flight -> !existingRoutes.contains(flight))).count() + " Flights to Backend, ignored " + existingRoutes.size() + " already existing");
+        //LOG.debug("SENT " + (flights.stream().filter(flight -> !existingRoutes.contains(flight))).count() + " Flights to Backend, ignored " + existingRoutes.size() + " already existing");
         flights.clear();
         LOG.info("SENDING Airlines, Markets, Routes & Flights to Backend DONE");
     }
