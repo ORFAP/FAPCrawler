@@ -71,7 +71,7 @@ public class CrawlerImpl implements Crawler {
             if (line.startsWith("\"")) {
                 String[] parts = line.split(",");
                 final Airline next = new Airline(parts[1].replaceAll("(\"|\\([1-9]\\))", "").trim(), parts[0].replaceAll("\"", ""));
-                if(next.getId()==null || next.getName()==null){
+                if (next.getId() == null || next.getName() == null) {
                     throw new AssertionError("This is bad");
                 }
                 airlines.add(next);
@@ -93,7 +93,7 @@ public class CrawlerImpl implements Crawler {
                 parts[0] = "";
                 String name = String.join("", parts).replaceAll("\"", "").trim();
                 Market next = new Market(name, id);
-                if(next.getId()==null || next.getName()==null){
+                if (next.getId() == null || next.getName() == null) {
                     throw new AssertionError("This is bad");
                 }
                 //Checks if Market lies in the USA
@@ -127,33 +127,27 @@ public class CrawlerImpl implements Crawler {
             try {
                 while ((line = br.readLine()) != null) {
                     columns = line.split(",");
-                    if (columns[3].equals("31703")) {
-                        // "DAY_OF_WEEK","FL_DATE","AIRLINE_ID","ORIGIN_CITY_MARKET_ID"
-                        // "DEST_CITY_MARKET_ID","DEP_DELAY_NEW","ARR_DELAY_NEW","CANCELLED"
-                        flight = new Route();
-                        GregorianCalendar gregorianCalendar = new GregorianCalendar(Integer.parseInt(columns[1].substring(0, 4)), Integer.parseInt(columns[1].substring(5, 7)) - 1, Integer.parseInt(columns[1].substring(8, 10)));
-                        flight.setDate(gregorianCalendar.getTime());
-                        flight.setCancelled(Double.parseDouble(columns[7]));
-                        //Cancelled Flights have empty dep and arr delay fields
-                        if (Double.parseDouble(columns[7]) == 0) {
-                            //Some dep delay fields are empty
-                            if (!columns[5].isEmpty()) {
-                                delay += Double.parseDouble(columns[5]);
-                            }
-                            //some arr delay fields are empty, too
-                            if (!columns[6].isEmpty()) {
-                                delay += Double.parseDouble(columns[6]);
-                            }
-                            flight.setDelays(delay);
-                            delay = 0;
+                    // "DAY_OF_WEEK","FL_DATE","AIRLINE_ID","ORIGIN_CITY_MARKET_ID"
+                    // "DEST_CITY_MARKET_ID","ARR_DELAY_NEW","CANCELLED"
+                    flight = new Route();
+                    GregorianCalendar gregorianCalendar = new GregorianCalendar(Integer.parseInt(columns[1].substring(0, 4)), Integer.parseInt(columns[1].substring(5, 7)) - 1, Integer.parseInt(columns[1].substring(8, 10)));
+                    flight.setDate(gregorianCalendar.getTime());
+                    flight.setCancelled(Double.parseDouble(columns[6]));
+                    //Cancelled Flights have empty arr delay fields
+                    if (Double.parseDouble(columns[6]) == 0) {
+                        //Some arr delay fields are empty
+                        if (!columns[5].isEmpty()) {
+                            delay = Double.parseDouble(columns[5]);
                         }
-                        flight.setPassengerCount(0);
-                        flight.setFlightCount(1);
-                        flight.setAirline(basepath + "airlines/" + columns[2]);
-                        flight.setSource(basepath + "markets/" + columns[3]);
-                        flight.setDestination(basepath + "markets/" + columns[4]);
-                        flights.add(flight);
+                        flight.setDelays(delay);
+                        delay = 0;
                     }
+                    flight.setPassengerCount(0);
+                    flight.setFlightCount(1);
+                    flight.setAirline(basepath + "airlines/" + columns[2]);
+                    flight.setSource(basepath + "markets/" + columns[3]);
+                    flight.setDestination(basepath + "markets/" + columns[4]);
+                    flights.add(flight);
                 }
             } finally {
                 //noinspection ThrowFromFinallyBlock
@@ -183,10 +177,10 @@ public class CrawlerImpl implements Crawler {
         try {
             while ((line = br.readLine()) != null) {
                 String[] columns = line.split(",");
-                if (!line.contains(",,") && columns[4].equals("31703") && Double.parseDouble(columns[2]) > 0) {
-                    // DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
+                if (!line.contains(",,") && Double.parseDouble(columns[2]) > 0) {
+                    // "DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
                     // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
-                    // "DEST_CITY_MARKET_ID","MONTH
+                    // "DEST_CITY_MARKET_ID","MONTH"
                     route = new Route();
                     GregorianCalendar gregorianCalendar = new GregorianCalendar(year, Integer.parseInt(columns[6]) - 1, 1);
                     route.setDate(gregorianCalendar.getTime());
@@ -197,7 +191,7 @@ public class CrawlerImpl implements Crawler {
                     route.setAirline(basepath + "airlines/" + columns[3]);
                     route.setSource(basepath + "markets/" + columns[4]);
                     route.setDestination(basepath + "markets/" + columns[5]);
-                    if(route.getAirline()==null || route.getDate()==null|| route.getDestination()==null|| route.getSource()==null){
+                    if (route.getAirline() == null || route.getDate() == null || route.getDestination() == null || route.getSource() == null) {
                         throw new AssertionError("This is bad");
                     }
                     routes.add(route);
@@ -260,7 +254,6 @@ public class CrawlerImpl implements Crawler {
      * @return postHTTPforming InputStream
      * @throws IOException
      */
-
     private InputStream openConnection(String urlToRead, String method, int year, int month) throws IOException {
         URL url = new URL(urlToRead);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -299,7 +292,7 @@ public class CrawlerImpl implements Crawler {
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("UserTableName", charset), URLEncoder.encode("T_100_Domestic_Segment__All_Carriers", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("DBShortName", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("RawDataTable", charset), URLEncoder.encode("T_T100D_SEGMENT_ALL_CARRIER", charset)));
-            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode("SELECT DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH FROM  T_T100D_SEGMENT_ALL_CARRIER WHERE YEAR=" + year, charset)));
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode("SELECT DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH FROM  T_T100D_SEGMENT_ALL_CARRIER WHERE YEAR=" + year + " AND ORIGIN_CITY_MARKET_ID=31703", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("varlist", charset), URLEncoder.encode("DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,MONTH", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("grouplist", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("suml", charset), URLEncoder.encode("", charset)));
@@ -442,8 +435,8 @@ public class CrawlerImpl implements Crawler {
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("UserTableName", charset), URLEncoder.encode("On_Time_Performance", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("DBShortName", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("RawDataTable", charset), URLEncoder.encode("T_ONTIME", charset)));
-            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode(" SELECT DAY_OF_WEEK,FL_DATE,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,DEP_DELAY_NEW,ARR_DELAY_NEW,CANCELLED FROM  T_ONTIME WHERE Month =" + month + " AND YEAR=" + year, charset)));
-            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("varlist", charset), URLEncoder.encode("DAY_OF_WEEK,FL_DATE,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,DEP_DELAY_NEW,ARR_DELAY_NEW,CANCELLED", charset)));
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode(" SELECT DAY_OF_WEEK,FL_DATE,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,ARR_DELAY_NEW,CANCELLED FROM  T_ONTIME WHERE Month =" + month + " AND YEAR=" + year + " AND ORIGIN_CITY_MARKET_ID=31703", charset)));
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("varlist", charset), URLEncoder.encode("DAY_OF_WEEK,FL_DATE,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,ARR_DELAY_NEW,CANCELLED", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("grouplist", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("suml", charset), URLEncoder.encode("", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sumRegion", charset), URLEncoder.encode("", charset)));
