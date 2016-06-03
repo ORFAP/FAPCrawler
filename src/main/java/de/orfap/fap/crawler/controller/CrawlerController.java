@@ -1,11 +1,18 @@
 package de.orfap.fap.crawler.controller;
 
-import de.orfap.fap.crawler.crawler.Crawler;
-import org.springframework.beans.factory.annotation.Autowired;
+import de.orfap.fap.crawler.crawlerpipes.Downloader;
+import de.orfap.fap.crawler.crawlerpipes.ResourceBuilder;
+import de.orfap.fap.crawler.crawlerpipes.Sender;
+import de.orfap.fap.crawler.crawlerpipes.Unzipper;
+import de.orfap.fap.crawler.domain.Airline;
+import edu.hm.obreitwi.arch.lab08.Pipe;
+import edu.hm.obreitwi.arch.lab08.Pump;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.io.File;
 
 /**
  * Created by Arne on 15.05.2016.
@@ -13,10 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 @SuppressWarnings("DefaultFileTemplate")
 @RestController
 public class CrawlerController {
-
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Autowired
-    Crawler crawler;
 
     @RequestMapping(value = "/crawlIntoBackend", method = RequestMethod.GET)
     public void crawlIntoBackend(@Param("year") String year) throws Exception {
@@ -26,10 +29,22 @@ public class CrawlerController {
         } catch (NumberFormatException nfe) {
             throw new IllegalArgumentException("year must be a numerical value");
         }
-        crawler.getAirlines("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID");
-        crawler.getMarkets("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID");
-        crawler.getRoutes("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0", usedYear);
-        crawler.getFlights("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear);
-        crawler.sendDataToBackend();
+        //AirlinePipe:
+        Pump AirlinePump = new Pump<String>();
+        Unzipper<File, String> AirlineUnzipper = new Unzipper<>(new File("L_AIRLINE_ID.csv"), "");
+        ResourceBuilder<String, Airline> rbfa = new ResourceBuilder<>("", new Airline());
+        Downloader<File> AirlineDownloader = new Downloader<>("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID", new File(""));
+        Sender<Airline> AirlineSender = new Sender<>();
+        AirlinePump.use(AirlineDownloader)
+                .connect(new Pipe<>())
+                .connect(AirlineUnzipper)
+                .connect(new Pipe<>())
+                .connect(rbfa)
+                .connect(new Pipe<>())
+                .connect(AirlineSender);
+        AirlinePump.interrupt();
+        //MarketPipe:
+        //Pump MarketPump = new Pump<String>();
+        //Downloader<File> MarketDownloader = new Downloader<>("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID", new File(""));
     }
 }
