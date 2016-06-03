@@ -35,6 +35,7 @@ public class CrawlerController {
         ResourceBuilder<String, Airline> rbfa = new ResourceBuilder<>("", new Airline());
         Downloader<File> AirlineDownloader = new Downloader<>("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID", new File(""));
         Sender<Airline> AirlineSender = new Sender<>();
+        //noinspection unchecked,unchecked,unchecked,unchecked,unchecked,unchecked,unchecked
         AirlinePump.use(AirlineDownloader)
                 .connect(new Pipe<>())
                 .connect(AirlineUnzipper)

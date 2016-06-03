@@ -32,6 +32,7 @@ public class Downloader<T> extends BaseProducer<T> {
             filename = conn.getHeaderField("Content-Disposition").split("filename=")[1].replace("\"", "");
             Files.copy(conn.getInputStream(), Paths.get(filename));
             if (object instanceof File) {
+                //noinspection unchecked
                 return (T) new File(filename);
             }
         } catch (IOException e) {

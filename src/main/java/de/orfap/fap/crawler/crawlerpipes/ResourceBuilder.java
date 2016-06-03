@@ -26,6 +26,7 @@ public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
             } else {
                 output = new Airline("", "");
             }
+            //noinspection unchecked
             return (U) output;
         }
         return null;
