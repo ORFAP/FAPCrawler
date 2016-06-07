@@ -5,6 +5,7 @@ import de.orfap.fap.crawler.domain.Market;
 import de.orfap.fap.crawler.domain.Route;
 import org.springframework.hateoas.Resource;
 
+
 /**
  * Created by Arne on 13.04.2016.
  */

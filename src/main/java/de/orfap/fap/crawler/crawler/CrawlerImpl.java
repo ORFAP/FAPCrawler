@@ -211,7 +211,7 @@ public class CrawlerImpl implements Crawler {
         Set<Airline> usedAirlines = new HashSet<>();
         Collection<Airline> existingAirlines = airlineClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         for (Airline airline : airlines) {
-            for (int i = 0; i<routes.size(); i++) {
+            for (int i = 0; i < routes.size(); i++) {
                 if (routes.get(i).getAirline().equals(basepath + "airlines/" + airline.getId())
                         && !existingAirlines.contains(airline)) {
                     usedAirlines.add(airline);
@@ -696,4 +696,5 @@ public class CrawlerImpl implements Crawler {
     public Resource<Airline> sendAirlineToBackend(Airline airline) {
         return airlineClient.create(airline);
     }
+
 }

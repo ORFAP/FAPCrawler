@@ -13,11 +13,13 @@ import java.nio.file.Paths;
  * Created by o4 on 03.06.16.
  */
 public class Downloader<T> extends BaseProducer<T> {
-    Object object;
+    private Object object;
     private String url;
+    private int year;
 
-    public Downloader(String url, Object object) {
+    public Downloader(String url, int year, Object object) {
         this.url = url;
+        this.year = year;
         this.object = object;
     }
 

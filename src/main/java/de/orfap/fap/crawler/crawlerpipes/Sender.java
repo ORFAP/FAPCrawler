@@ -1,6 +1,7 @@
 package de.orfap.fap.crawler.crawlerpipes;
 
 import de.orfap.fap.crawler.domain.Airline;
+import de.orfap.fap.crawler.domain.Market;
 import de.orfap.fap.crawler.feign.AirlineClient;
 import de.orfap.fap.crawler.feign.MarketClient;
 import de.orfap.fap.crawler.feign.RouteClient;
@@ -29,6 +30,8 @@ public class Sender<T> extends BaseConsumer<T> {
     public void accept(T data) {
         if (data instanceof Airline && !(((Airline) data).getId().isEmpty() || ((Airline) data).getName().isEmpty())) {
             airlineClient.create((Airline) data);
+        } else if (data instanceof Market && !(((Market) data).getId().isEmpty() || ((Market) data).getName().isEmpty())) {
+            marketClient.create((Market) data);
         }
     }
 }
