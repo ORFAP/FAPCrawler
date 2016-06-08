@@ -86,79 +86,19 @@ public class CrawlerImpl implements Crawler {
         LOG.info("STARTED CRAWLING MARKETS");
         BufferedReader rd = new BufferedReader(new InputStreamReader(openConnection(urlToRead, "csv", 0, 0)));
         String line;
+        Market next;
         while ((line = rd.readLine()) != null) {
-            if (line.startsWith("\"")) {
-                String[] parts = line.split(",");
-                String id = parts[0].replaceAll("\"", "").trim();
-                parts[0] = "";
-                String name = String.join("", parts).replaceAll("\"", "").trim();
-                Market next = new Market(name, id);
+            String[] parts = line.split("\",\"");
+            if (parts[0].matches("\"[0-9]{1,}") && parts[1].matches("[A-Za-z ]*, [A-Z]{2}.*\"")) {
+                next = new Market(parts[1].trim().replaceAll("\"", ""), parts[0].replaceAll("\"", ""));
                 if (next.getId() == null || next.getName() == null) {
                     throw new AssertionError("This is bad");
                 }
-                //Checks if Market lies in the USA
-                if (parts.length == 3 && (parts[2].replaceAll("\"", "").trim().matches("[A-Z][A-Z]")
-                        || parts[2].replaceAll("\"", "").trim().contains("[A-Z][A-Z] [\\(]")
-                        || parts[2].contains("Metropolitan Area"))) {
-                    markets.add(next);
-                }
+                markets.add(next);
             }
         }
         rd.close();
         LOG.info("CRAWLING MARKETS DONE: " + markets.size() + " markets crawled.");
-    }
-
-    @Override
-    public void getFlights(String urlToRead, int year) throws Exception {
-        LOG.info("STARTED CRAWLING FLIGHTS");
-        String filename = "temp-ontime.zip";
-        Route flight;
-        String[] columns = new String[0];
-        double delay = 0;
-        for (int month = 1; month <= 12; month++) {
-            InputStream rd = openConnection(urlToRead, "ONTIME", year, month);
-            Files.copy(rd, Paths.get(filename));
-            ZipFile zipFile = new ZipFile(filename);
-            Enumeration entries = zipFile.entries();
-            ZipEntry zE = (ZipEntry) entries.nextElement();
-            BufferedReader br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(zE)));
-            //noinspection UnusedAssignment Needs to be called to erase first line of file
-            @SuppressWarnings("UnusedAssignment") String line = br.readLine();
-            try {
-                while ((line = br.readLine()) != null) {
-                    columns = line.split(",");
-                    // "DAY_OF_WEEK","FL_DATE","AIRLINE_ID","ORIGIN_CITY_MARKET_ID"
-                    // "DEST_CITY_MARKET_ID","ARR_DELAY_NEW","CANCELLED"
-                    flight = new Route();
-                    GregorianCalendar gregorianCalendar = new GregorianCalendar(Integer.parseInt(columns[1].substring(0, 4)), Integer.parseInt(columns[1].substring(5, 7)) - 1, Integer.parseInt(columns[1].substring(8, 10)));
-                    flight.setDate(gregorianCalendar.getTime());
-                    flight.setCancelled(Double.parseDouble(columns[6]));
-                    //Cancelled Flights have empty arr delay fields
-                    if (Double.parseDouble(columns[6]) == 0) {
-                        //Some arr delay fields are empty
-                        if (!columns[5].isEmpty()) {
-                            delay = Double.parseDouble(columns[5]);
-                        }
-                        flight.setDelays(delay);
-                        delay = 0;
-                    }
-                    flight.setPassengerCount(0);
-                    flight.setFlightCount(1);
-                    flight.setAirline(basepath + "airlines/" + columns[2]);
-                    flight.setSource(basepath + "markets/" + columns[3]);
-                    flight.setDestination(basepath + "markets/" + columns[4]);
-                    flights.add(flight);
-                }
-            } finally {
-                //noinspection ThrowFromFinallyBlock
-                zipFile.close();
-                File file = new File(filename);
-                //noinspection ResultOfMethodCallIgnored
-                file.delete();
-            }
-            LOG.info("Interloop update: " + year + ":" + month + " crawled.");
-        }
-        LOG.info("CRAWLING FLIGHTS DONE " + flights.size() + " Flights of " + year + " crawled.");
     }
 
     @Override
@@ -207,7 +147,7 @@ public class CrawlerImpl implements Crawler {
     }
 
     public void sendDataToBackend() {
-        LOG.info("STARTED SENDING Airlines, Markets, Routes & Flights to Backend");
+        LOG.info("STARTED SENDING Airlines, Markets & Routes to Backend");
         Set<Airline> usedAirlines = new HashSet<>();
         Collection<Airline> existingAirlines = airlineClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         for (Airline airline : airlines) {
@@ -233,17 +173,17 @@ public class CrawlerImpl implements Crawler {
                 }
             }
         }
+        markets.clear();
         usedMarkets.forEach(this::sendMarketToBackend);
         LOG.info("SENT " + usedMarkets.size() + " Markets to Backend, ignored " + existingMarkets.size() + " already existing");
-        markets.clear();
         Collection<Route> existingRoutes = routeClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         routes.stream().filter(route -> !existingRoutes.contains(route)).forEach(this::sendRoutesToBackend);
         LOG.info("SENT " + (routes.stream().filter(route -> !existingRoutes.contains(route))).count() + " Routes to Backend, ignored " + existingRoutes.size() + " already existing");
         routes.clear();
-        flights.stream().filter(flight -> !existingRoutes.contains(flight)).forEach(this::sendRoutesToBackend);
-        LOG.info("SENT " + (flights.stream().filter(flight -> !existingRoutes.contains(flight))).count() + " Flights to Backend, ignored " + existingRoutes.size() + " already existing");
-        flights.clear();
-        LOG.info("SENDING Airlines, Markets, Routes & Flights to Backend DONE");
+//        flights.stream().filter(flight -> !existingRoutes.contains(flight)).forEach(this::sendRoutesToBackend);
+//        LOG.info("SENT " + (flights.stream().filter(flight -> !existingRoutes.contains(flight))).count() + " Flights to Backend, ignored " + existingRoutes.size() + " already existing");
+//        flights.clear();
+        LOG.info("SENDING Airlines, Markets & Routes to Backend DONE");
     }
 
     /**

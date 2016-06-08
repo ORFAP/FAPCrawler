@@ -52,8 +52,13 @@ public class Unzipper<T, U> extends BaseFilter<T, U> {
     public U deliver() {
         if ((zipfile instanceof ZipFile || file instanceof File) && s instanceof String) {
             try {
+                String output;
+                output = br.readLine();
+                if(output.startsWith("\"")){
+                    output=br.readLine();
+                }
                 //noinspection unchecked
-                return (U) br.readLine();
+                return (U) output;
             } catch (IOException e) {
                 e.printStackTrace();
             }
