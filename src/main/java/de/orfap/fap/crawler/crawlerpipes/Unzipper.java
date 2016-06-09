@@ -1,5 +1,6 @@
 package de.orfap.fap.crawler.crawlerpipes;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import edu.hm.obreitwi.arch.lab08.BaseFilter;
 
 import java.io.BufferedReader;
@@ -16,30 +17,30 @@ import java.util.zip.ZipFile;
  * Created by o4 on 03.06.16.
  */
 public class Unzipper<T, U> extends BaseFilter<T, U> {
-    private File file;
-    private ZipFile zipfile;
+    private String downloadfileType;
+    private String filename;
     private String s;
     private BufferedReader br;
 
-    public Unzipper(File file, String s) {
-        this.file = file;
+    public Unzipper(final String downloadfileType, final String filename, final String s) {
+        this.downloadfileType = downloadfileType;
+        this.filename = filename;
         this.s = s;
-        try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public Unzipper(ZipFile zipfile, String s) {
-        this.zipfile = zipfile;
-        this.s = s;
-        Enumeration entries = zipfile.entries();
-        ZipEntry zE = (ZipEntry) entries.nextElement();
-        try {
-            br = new BufferedReader(new InputStreamReader(zipfile.getInputStream(zE)));
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (downloadfileType.equals("csv")) {
+            try {
+                br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(filename))));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        } else if (downloadfileType.equals("zip")) {
+            try {
+                ZipFile zipfile = new ZipFile(filename);
+                Enumeration entries = zipfile.entries();
+                ZipEntry zE = (ZipEntry) entries.nextElement();
+                br = new BufferedReader(new InputStreamReader(zipfile.getInputStream(zE)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -50,12 +51,12 @@ public class Unzipper<T, U> extends BaseFilter<T, U> {
 
     @Override
     public U deliver() {
-        if ((zipfile instanceof ZipFile || file instanceof File) && s instanceof String) {
+        if ((downloadfileType.equals("csv") || downloadfileType.equals("zip")) && s instanceof String) {
             try {
                 String output;
                 output = br.readLine();
-                if(output.startsWith("\"")){
-                    output=br.readLine();
+                if (output.startsWith("\"")) {
+                    output = br.readLine();
                 }
                 //noinspection unchecked
                 return (U) output;

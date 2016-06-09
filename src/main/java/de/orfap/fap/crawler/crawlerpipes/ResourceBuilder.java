@@ -12,14 +12,13 @@ import java.util.GregorianCalendar;
 /**
  * Created by o4 on 03.06.16.
  */
-@Service
 public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
     private Object object;
     private String s;
     @Value("${fap.backend.basePath}")
     private String basepath;
 
-    public ResourceBuilder(String s, Object object) {
+    public ResourceBuilder(final String s, final Object object) {
         this.s = s;
         this.object = object;
     }
@@ -42,7 +41,7 @@ public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
             } else if (object instanceof Market) {
                 final Market output;
                 columns = workingdata.split("\",\"");
-                if (columns[0].matches("\"[0-9]{1,}") && columns[1].matches("[A-Za-z ]*, [A-Z]{2}.*\"")) {
+                if (columns[0].matches("\"[0-9]{1,}") && columns[1].matches(".*, [A-Z]{2}.*\"")) {
                     output = new Market(columns[1].trim().replaceAll("\"", ""), columns[0].replaceAll("\"", ""));
                 } else {
                     output = new Market("", "");

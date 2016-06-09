@@ -89,7 +89,7 @@ public class CrawlerImpl implements Crawler {
         Market next;
         while ((line = rd.readLine()) != null) {
             String[] parts = line.split("\",\"");
-            if (parts[0].matches("\"[0-9]{1,}") && parts[1].matches("[A-Za-z ]*, [A-Z]{2}.*\"")) {
+            if (parts[0].matches("\"[0-9]{1,}") && parts[1].matches(".*, [A-Z]{2}.*\"")) {
                 next = new Market(parts[1].trim().replaceAll("\"", ""), parts[0].replaceAll("\"", ""));
                 if (next.getId() == null || next.getName() == null) {
                     throw new AssertionError("This is bad");
