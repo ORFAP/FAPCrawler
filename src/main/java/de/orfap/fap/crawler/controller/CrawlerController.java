@@ -76,7 +76,7 @@ public class CrawlerController {
             String downloadfileType = "zip";
             Pump<String> flightPump = new Pump<>();
             Downloader<ZipFile> flightDownloader = new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
-            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route());
+            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true);
             flightPump.use(new Unzipper<>(downloadfileType, filename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsf)
