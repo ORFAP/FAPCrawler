@@ -10,7 +10,8 @@
  */
 package edu.hm.obreitwi.arch.lab08;
 
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A pipe with a buffer of given size, to store objects when push/pull is
@@ -23,7 +24,7 @@ public class SynchronizedQueue<T> extends Pipe<T> {
     /**
      * The buffer.
      */
-    private final SynchronousQueue<T> buffer;
+    private final LinkedBlockingDeque<T> buffer;
 
     /**
      * Custom Konstruktor which creates a buffer of the given size.
@@ -31,7 +32,7 @@ public class SynchronizedQueue<T> extends Pipe<T> {
      * @throws IllegalArgumentException if size is less than 1
      */
     public SynchronizedQueue() {
-        this.buffer = new SynchronousQueue<>();
+        this.buffer = new LinkedBlockingDeque<>();
     }
 
     @Override
@@ -43,6 +44,12 @@ public class SynchronizedQueue<T> extends Pipe<T> {
 
     @Override
     public T pull() {
-        return buffer.poll();
+        T output = null;
+        try {
+            output = buffer.poll(1, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return output;
     }
 }
