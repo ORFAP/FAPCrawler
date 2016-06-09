@@ -75,25 +75,25 @@ public class CrawlerController {
             crawler.sendDataToBackend();
         }
         //FlightPipe:
+        Pump<String>[] pumps=new Pump[12];
         for (int i = startMonth; i <= endMonth; i++) {
+            pumps[i-1]=new Pump<>();
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
-            Pump<String> flightPump = new Pump<>();
             Downloader<ZipFile> flightDownloader = new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
             ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true);
-            flightPump.use(new Unzipper<>(downloadfileType, filename, ""))
+            pumps[i-1].use(new Unzipper<>(downloadfileType, filename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsf)
                     .connect(new SynchronizedQueue<>())
                     .connect(new Collector<>())
                     .connect(new Pipe<>())
                     .connect(new Sink<List<Route>>().use(flightSender));
-            flightPump.interrupt();
+            pumps[i-1].interrupt();
             LOG.info("Started FlightCrawlThread#" + i);
-            if (i % 6 == 0) {
-                LOG.info("Waiting for completion of FlightCrawlThread#" + i);
-                flightPump.join();
-            }
+        }
+        for(int i=0;i<pumps.length;i++){
+            pumps[i].join();
         }
         LOG.info("Crawling of "+year+" done");
     }
