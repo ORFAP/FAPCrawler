@@ -5,6 +5,7 @@ import de.orfap.fap.crawler.domain.Market;
 import de.orfap.fap.crawler.domain.Route;
 import org.springframework.hateoas.Resource;
 
+
 /**
  * Created by Arne on 13.04.2016.
  */
@@ -34,15 +35,6 @@ public interface Crawler {
      * @throws Exception
      */
     void getRoutes(@SuppressWarnings("SameParameterValue") String urlToRead, int year) throws Exception;
-
-    /**
-     * Crawlsings the Flights, as in crawling & parsing.
-     *
-     * @param urlToRead where to read
-     * @param year      the year to be crawled
-     * @throws Exception
-     */
-    void getFlights(String urlToRead, int year) throws Exception;
 
     /**
      * Sends the crawlsinged (as in crawled & parsed) airlines, markets, routes & flights to the backend.
