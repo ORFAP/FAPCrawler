@@ -37,6 +37,7 @@ public class Downloader<T> extends BaseProducer<T> {
         this.filename = filename;
         this.outputFile = null;
         try {
+            Files.deleteIfExists(Paths.get(filename));
             URL urlToRead = new URL(url);
             HttpURLConnection conn = (HttpURLConnection) urlToRead.openConnection();
             if (downloadfileType.equals("csv")) {

@@ -66,7 +66,7 @@ public class CrawlerController {
         for (int i = startMonth; i <= endMonth; i++) {
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
-            Pump flightPump = new Pump<String>();
+            Pump<String> flightPump = new Pump<>();
             Downloader<ZipFile> flightDownloader = new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
             ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route());
             flightPump.use(new Unzipper<>(downloadfileType, filename, ""))
@@ -75,6 +75,9 @@ public class CrawlerController {
                     .connect(new Pipe<>())
                     .connect(flightSender);
             flightPump.interrupt();
+            if(i%6==0) {
+                flightPump.join();
+            }
         }
     }
 }
