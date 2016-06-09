@@ -41,11 +41,10 @@ public class CrawlerController {
         int startMonth;
         int endMonth;
         try {
-            if(month==null){
-                startMonth=1;
-                endMonth=12;
-            }
-            else if (month.contains("-")) {
+            if (month == null) {
+                startMonth = 1;
+                endMonth = 12;
+            } else if (month.contains("-")) {
                 String[] working = month.split("-");
                 startMonth = Integer.parseInt(working[0]);
                 endMonth = Integer.parseInt(working[1]);
@@ -75,26 +74,30 @@ public class CrawlerController {
             crawler.sendDataToBackend();
         }
         //FlightPipe:
-        Pump<String>[] pumps=new Pump[12];
+        Pump<String>[] pumps = new Pump[12];
+        Sink<List<Route>>[] sinks = new Sink[12];
         for (int i = startMonth; i <= endMonth; i++) {
-            pumps[i-1]=new Pump<>();
+            pumps[i - 1] = new Pump<>();
+            sinks[i - 1] = new Sink<>();
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
             Downloader<ZipFile> flightDownloader = new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
             ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true);
-            pumps[i-1].use(new Unzipper<>(downloadfileType, filename, ""))
+            pumps[i - 1].use(new Unzipper<>(downloadfileType, filename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsf)
                     .connect(new SynchronizedQueue<>())
                     .connect(new Collector<>())
                     .connect(new Pipe<>())
-                    .connect(new Sink<List<Route>>().use(flightSender));
-            pumps[i-1].interrupt();
+                    .connect(sinks[i - 1].use(flightSender));
+            pumps[i - 1].interrupt();
+            sinks[i - 1].interrupt();
             LOG.info("Started FlightCrawlThread#" + i);
         }
-        for(int i=0;i<pumps.length;i++){
-            pumps[i].join();
+        for (int i = 0; i < sinks.length; i++) {
+            sinks[i].join();
+            LOG.info("Sink " + i + " beendet");
         }
-        LOG.info("Crawling of "+year+" done");
+        LOG.info("Crawling of " + year + " done");
     }
 }
