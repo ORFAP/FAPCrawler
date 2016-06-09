@@ -41,7 +41,11 @@ public class CrawlerController {
         int startMonth;
         int endMonth;
         try {
-            if (month.contains("-")) {
+            if(month==null){
+                startMonth=1;
+                endMonth=12;
+            }
+            else if (month.contains("-")) {
                 String[] working = month.split("-");
                 startMonth = Integer.parseInt(working[0]);
                 endMonth = Integer.parseInt(working[1]);
@@ -91,5 +95,6 @@ public class CrawlerController {
                 flightPump.join();
             }
         }
+        LOG.info("Crawling of "+year+" done");
     }
 }
