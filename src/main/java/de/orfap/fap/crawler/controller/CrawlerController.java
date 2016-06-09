@@ -8,6 +8,8 @@ import de.orfap.fap.crawler.crawlerpipes.Unzipper;
 import de.orfap.fap.crawler.domain.Route;
 import edu.hm.obreitwi.arch.lab08.Pipe;
 import edu.hm.obreitwi.arch.lab08.Pump;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +28,7 @@ public class CrawlerController {
     Sender<Route> flightSender;
     @Autowired
     Crawler crawler;
+    private final Logger LOG = LoggerFactory.getLogger(CrawlerController.class);
 
     @RequestMapping(value = "/crawlIntoBackend", method = RequestMethod.GET)
     public void crawlIntoBackend(@Param("year") String year, @Param("month") String month) throws Exception {
@@ -75,7 +78,9 @@ public class CrawlerController {
                     .connect(new Pipe<>())
                     .connect(flightSender);
             flightPump.interrupt();
+            LOG.info("Started FlightCrawlThread#"+i);
             if(i%6==0) {
+                LOG.info("Waiting for completion of FlightCrawlThread#"+i);
                 flightPump.join();
             }
         }

@@ -1,6 +1,8 @@
 package de.orfap.fap.crawler.crawlerpipes;
 
 import edu.hm.obreitwi.arch.lab08.BaseProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.DataOutputStream;
 import java.io.File;
@@ -20,6 +22,7 @@ import java.util.zip.ZipFile;
  * Created by o4 on 03.06.16.
  */
 public class Downloader<T> extends BaseProducer<T> {
+    private final Logger LOG = LoggerFactory.getLogger(Downloader.class);
     private File file;
     private ZipFile zipFile;
     private String downloadfileType;
@@ -50,6 +53,7 @@ public class Downloader<T> extends BaseProducer<T> {
                 setReqPropONTIME(conn, year, month);
                 Files.copy(conn.getInputStream(), Paths.get(filename));
             }
+            LOG.info("File "+filename+" downloaded");
         } catch (IOException e) {
             e.printStackTrace();
         }
