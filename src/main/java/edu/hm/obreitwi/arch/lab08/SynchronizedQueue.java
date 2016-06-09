@@ -10,8 +10,6 @@
  */
 package edu.hm.obreitwi.arch.lab08;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.SynchronousQueue;
 
 /**
@@ -22,27 +20,29 @@ import java.util.concurrent.SynchronousQueue;
  */
 public class SynchronizedQueue<T> extends Pipe<T> {
 
-	/**
-	 * The buffer.
-	 */
-	private final SynchronousQueue<T> buffer;
+    /**
+     * The buffer.
+     */
+    private final SynchronousQueue<T> buffer;
 
-	/**
-	 * Custom Konstruktor which creates a buffer of the given size.
-	 *
-	 * @throws IllegalArgumentException if size is less than 1
-	 */
-	public SynchronizedQueue() {
-		this.buffer = new SynchronousQueue<>();
-	}
+    /**
+     * Custom Konstruktor which creates a buffer of the given size.
+     *
+     * @throws IllegalArgumentException if size is less than 1
+     */
+    public SynchronizedQueue() {
+        this.buffer = new SynchronousQueue<>();
+    }
 
-	@Override
-	public void push(T datum) {
-		buffer.offer(datum);
-	}
+    @Override
+    public void push(T datum) {
+        if (datum != null) {
+            buffer.offer(datum);
+        }
+    }
 
-	@Override
-	public T pull() {
-		return buffer.poll();
-	}
+    @Override
+    public T pull() {
+        return buffer.poll();
+    }
 }
