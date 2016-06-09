@@ -1,6 +1,7 @@
 package de.orfap.fap.crawler.controller;
 
 import de.orfap.fap.crawler.crawler.Crawler;
+import de.orfap.fap.crawler.crawlerpipes.Collector;
 import de.orfap.fap.crawler.crawlerpipes.Downloader;
 import de.orfap.fap.crawler.crawlerpipes.ResourceBuilder;
 import de.orfap.fap.crawler.crawlerpipes.Sender;
@@ -8,6 +9,8 @@ import de.orfap.fap.crawler.crawlerpipes.Unzipper;
 import de.orfap.fap.crawler.domain.Route;
 import edu.hm.obreitwi.arch.lab08.Pipe;
 import edu.hm.obreitwi.arch.lab08.Pump;
+import edu.hm.obreitwi.arch.lab08.Sink;
+import edu.hm.obreitwi.arch.lab08.SynchronizedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.concurrent.SynchronousQueue;
 import java.util.zip.ZipFile;
 
 /**
@@ -25,7 +30,7 @@ import java.util.zip.ZipFile;
 @RestController
 public class CrawlerController {
     @Autowired
-    Sender<Route> flightSender;
+    Sender<List<Route>> flightSender;
     @Autowired
     Crawler crawler;
     private final Logger LOG = LoggerFactory.getLogger(CrawlerController.class);
@@ -75,8 +80,10 @@ public class CrawlerController {
             flightPump.use(new Unzipper<>(downloadfileType, filename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsf)
+                    .connect(new SynchronizedQueue<>())
+                    .connect(new Collector<>())
                     .connect(new Pipe<>())
-                    .connect(flightSender);
+                    .connect(new Sink<List<Route>>().use(flightSender));
             flightPump.interrupt();
             LOG.info("Started FlightCrawlThread#" + i);
             if (i % 6 == 0) {

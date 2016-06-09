@@ -68,9 +68,9 @@ public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
                 }
                 output.setPassengerCount(0);
                 output.setFlightCount(1);
-                output.setAirline(basepath + "airlines/" + columns[2]);
-                output.setSource(basepath + "markets/" + columns[3]);
-                output.setDestination(basepath + "markets/" + columns[4]);
+                output.setAirline(columns[2]);
+                output.setSource(columns[3]);
+                output.setDestination(columns[4]);
                 return (U) output;
             }
         }

@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 /**
  * Organization: HM FK07.
  * Project: fapcrawler, de.orfap.fap.crawler.feign
@@ -23,6 +25,9 @@ public interface RouteClient {
     //  @Headers(value = "text/uri-list")
     @RequestMapping(method = RequestMethod.POST, value = "/routes", consumes = "application/json")
     Resource<Route> create(Route route);
+
+    @RequestMapping(method = RequestMethod.POST, value = "/routes/saveAll", consumes = "application/json")
+    void create(List<Route> route);
 
     @RequestMapping(method = RequestMethod.GET, value = "/routes/{id}", consumes = "application/json")
     Resource<Route> findOne(@RequestParam("id") String id);
