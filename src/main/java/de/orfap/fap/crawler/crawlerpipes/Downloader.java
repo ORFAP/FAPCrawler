@@ -7,9 +7,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
+import java.net.*;
+import java.nio.charset.MalformedInputException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Month;
@@ -21,11 +20,14 @@ import java.util.zip.ZipFile;
  * Created by o4 on 03.06.16.
  */
 public class Downloader<T> extends BaseProducer<T> {
+    private File file;
+    private ZipFile zipFile;
     private String downloadfileType;
     private String url;
     private int year;
     private int month;
     private String filename;
+    private Object outputFile;
 
     public Downloader(final String url, final int year, final int month, final String downloadfileType, final String filename) {
         this.url = url;
@@ -33,30 +35,28 @@ public class Downloader<T> extends BaseProducer<T> {
         this.month = month;
         this.downloadfileType = downloadfileType;
         this.filename = filename;
-    }
-
-    @Override
-    public T deliver() {
-        T output = null;
+        this.outputFile = null;
         try {
             URL urlToRead = new URL(url);
             HttpURLConnection conn = (HttpURLConnection) urlToRead.openConnection();
             if (downloadfileType.equals("csv")) {
                 conn.setRequestMethod("GET");
-                filename = conn.getHeaderField("Content-Disposition").split("filename=")[1].replace("\"", "");
+                this.filename = conn.getHeaderField("Content-Disposition").split("filename=")[1].replace("\"", "");
                 Files.copy(conn.getInputStream(), Paths.get(filename));
-                //noinspection unchecked
-                output = (T) new File(filename);
+                outputFile = new File(filename);
             } else if (downloadfileType.equals("zip")) {
                 conn.setRequestMethod("POST");
                 setReqPropONTIME(conn, year, month);
                 Files.copy(conn.getInputStream(), Paths.get(filename));
-                output = (T) new ZipFile(filename);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return output;
+    }
+
+    @Override
+    public T deliver() {
+        return (T) outputFile;
     }
 
     /**

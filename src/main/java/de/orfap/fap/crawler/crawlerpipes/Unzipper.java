@@ -51,10 +51,14 @@ public class Unzipper<T, U> extends BaseFilter<T, U> {
 
     @Override
     public U deliver() {
-        if ((downloadfileType.equals("csv") || downloadfileType.equals("zip")) && s instanceof String) {
+        String output = null;
+        try {
+            output = br.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (output != null && (downloadfileType.equals("csv") || downloadfileType.equals("zip")) && s instanceof String) {
             try {
-                String output;
-                output = br.readLine();
                 if (output.startsWith("\"")) {
                     output = br.readLine();
                 }
@@ -64,6 +68,8 @@ public class Unzipper<T, U> extends BaseFilter<T, U> {
                 e.printStackTrace();
             }
         }
+        File toBeDeleted = new File(filename);
+        toBeDeleted.delete();
         return null;
     }
 

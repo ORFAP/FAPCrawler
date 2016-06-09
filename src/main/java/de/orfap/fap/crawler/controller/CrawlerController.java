@@ -30,34 +30,51 @@ public class CrawlerController {
     @RequestMapping(value = "/crawlIntoBackend", method = RequestMethod.GET)
     public void crawlIntoBackend(@Param("year") String year, @Param("month") String month) throws Exception {
         int usedYear;
-        int usedMonth;
+        int startMonth;
+        int endMonth;
         try {
-            usedMonth = Integer.parseInt(month);
-            if (usedMonth <= 0 || usedMonth > 12) {
-                usedMonth = usedMonth % 12;
-                usedMonth++;
+            if (month.contains("-")) {
+                String[] working = month.split("-");
+                startMonth = Integer.parseInt(working[0]);
+                endMonth = Integer.parseInt(working[1]);
+                if (endMonth <= 0 || endMonth > 12) {
+                    endMonth = endMonth % 12;
+                    endMonth++;
+                }
+                if (startMonth > endMonth) {
+                    throw new IllegalArgumentException("endMonth must be greater startMonth");
+                }
+            } else {
+                startMonth = Integer.parseInt(month);
+                endMonth = startMonth;
+            }
+            if (startMonth <= 0 || startMonth > 12) {
+                startMonth = startMonth % 12;
+                startMonth++;
             }
             usedYear = Integer.parseInt(year);
         } catch (NumberFormatException nfe) {
             throw new IllegalArgumentException("year/month must be a numerical value");
         }
-//        crawler.getAirlines("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID");
-//        crawler.getMarkets("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID");
-//        crawler.getRoutes("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0", usedYear);
-//        crawler.sendDataToBackend();
+        if (startMonth == 1) {
+            crawler.getAirlines("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID");
+            crawler.getMarkets("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID");
+            crawler.getRoutes("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0", usedYear);
+            crawler.sendDataToBackend();
+        }
         //FlightPipe:
-        String filename = "flights-"+usedYear+"-"+usedMonth+".zip";
-        String downloadfileType = "zip";
-        Pump flightPump = new Pump<String>();
-        Downloader<ZipFile> flightDownloader = new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, usedMonth, downloadfileType, filename);
-        ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route());
-        flightPump.use(flightDownloader)
-                .connect(new Pipe<>())
-                .connect(new Unzipper<>(downloadfileType, filename, ""))
-                .connect(new Pipe<>())
-                .connect(rbsf)
-                .connect(new Pipe<>())
-                .connect(flightSender);
-        flightPump.interrupt();
+        for (int i = startMonth; i <= endMonth; i++) {
+            String filename = "flights-" + usedYear + "-" + i + ".zip";
+            String downloadfileType = "zip";
+            Pump flightPump = new Pump<String>();
+            Downloader<ZipFile> flightDownloader = new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
+            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route());
+            flightPump.use(new Unzipper<>(downloadfileType, filename, ""))
+                    .connect(new Pipe<>())
+                    .connect(rbsf)
+                    .connect(new Pipe<>())
+                    .connect(flightSender);
+            flightPump.interrupt();
+        }
     }
 }
