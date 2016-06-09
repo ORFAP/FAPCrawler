@@ -10,9 +10,7 @@
  */
 package edu.hm.obreitwi.arch.lab08;
 
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 
 /**

@@ -1,6 +1,5 @@
 package de.orfap.fap.crawler.crawlerpipes;
 
-import de.orfap.fap.crawler.domain.Route;
 import edu.hm.obreitwi.arch.lab08.BaseFilter;
 
 import java.util.ArrayList;
