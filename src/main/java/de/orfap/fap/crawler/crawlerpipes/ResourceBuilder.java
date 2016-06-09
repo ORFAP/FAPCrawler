@@ -14,12 +14,14 @@ import java.util.GregorianCalendar;
 public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
     private Object object;
     private String s;
+    private boolean listable;
     @Value("${fap.backend.basePath}")
     private String basepath;
 
-    public ResourceBuilder(final String s, final Object object) {
+    public ResourceBuilder(final String s, final Object object, boolean listable) {
         this.s = s;
         this.object = object;
+        this.listable=listable;
     }
 
     @Override
@@ -68,9 +70,16 @@ public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
                 }
                 output.setPassengerCount(0);
                 output.setFlightCount(1);
-                output.setAirline(basepath + "airlines/" + columns[2]);
-                output.setSource(basepath + "markets/" + columns[3]);
-                output.setDestination(basepath + "markets/" + columns[4]);
+                if(listable) {
+                    output.setAirline(columns[2]);
+                    output.setSource(columns[3]);
+                    output.setDestination(columns[4]);
+                }
+                else{
+                    output.setAirline(basepath + "airlines/" + columns[2]);
+                    output.setSource(basepath + "markets/" + columns[3]);
+                    output.setDestination(basepath + "markets/" + columns[4]);
+                }
                 return (U) output;
             }
         }

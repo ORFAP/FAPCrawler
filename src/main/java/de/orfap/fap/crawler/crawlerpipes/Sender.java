@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Created by o4 on 03.06.16.
  */
@@ -45,6 +47,8 @@ public class Sender<T> extends BaseConsumer<T> {
             marketClient.create((Market) data);
         } else if (data instanceof Route) {
             routeClient.create((Route) data);
+        } else if (data instanceof List){
+            routeClient.create((List)data);
         }
         numberSendOperations++;
     }
