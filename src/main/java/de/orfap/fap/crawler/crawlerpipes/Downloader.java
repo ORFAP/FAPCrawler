@@ -7,10 +7,10 @@ import org.slf4j.LoggerFactory;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.*;
-import java.nio.charset.MalformedInputException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Month;
@@ -53,7 +53,7 @@ public class Downloader<T> extends BaseProducer<T> {
                 setReqPropONTIME(conn, year, month);
                 Files.copy(conn.getInputStream(), Paths.get(filename));
             }
-            LOG.info("File "+filename+" downloaded");
+            LOG.info("File " + filename + " downloaded");
         } catch (IOException e) {
             e.printStackTrace();
         }

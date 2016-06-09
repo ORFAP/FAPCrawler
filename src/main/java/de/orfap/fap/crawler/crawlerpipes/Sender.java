@@ -36,7 +36,7 @@ public class Sender<T> extends BaseConsumer<T> {
     @Override
     public void accept(T data) {
         if (data == null) {
-            LOG.info("Sent "+numberSendOperations+" Flights to Backend");
+            LOG.info("Sent " + numberSendOperations + " Flights to Backend");
             return;
         }
         if (data instanceof Airline && !(((Airline) data).getId().isEmpty() || ((Airline) data).getName().isEmpty())) {

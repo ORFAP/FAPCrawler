@@ -5,7 +5,6 @@ import de.orfap.fap.crawler.domain.Market;
 import de.orfap.fap.crawler.domain.Route;
 import edu.hm.obreitwi.arch.lab08.BaseFilter;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.util.GregorianCalendar;
 

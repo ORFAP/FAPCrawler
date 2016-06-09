@@ -78,9 +78,9 @@ public class CrawlerController {
                     .connect(new Pipe<>())
                     .connect(flightSender);
             flightPump.interrupt();
-            LOG.info("Started FlightCrawlThread#"+i);
-            if(i%6==0) {
-                LOG.info("Waiting for completion of FlightCrawlThread#"+i);
+            LOG.info("Started FlightCrawlThread#" + i);
+            if (i % 6 == 0) {
+                LOG.info("Waiting for completion of FlightCrawlThread#" + i);
                 flightPump.join();
             }
         }
