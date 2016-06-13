@@ -14,12 +14,8 @@ import java.util.List;
 /**
  * Created by Arne on 13.06.2016.
  */
-//@RunWith(SpringJUnit4ClassRunner.class)
-//@SpringApplicationConfiguration(SampleDataJpaApplication.class)
 public class CrawlerTest {
 
-
-//    @Autowired
     private static Crawler crawler;
 
 
