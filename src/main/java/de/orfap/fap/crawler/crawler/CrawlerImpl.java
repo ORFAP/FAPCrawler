@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,7 +64,7 @@ public class CrawlerImpl implements Crawler {
     private String basepath;
 
     @Override
-    public void getAirlines(String urlToRead) throws Exception {
+    public List<Airline> getAirlines(String urlToRead) throws Exception {
         LOG.info("STARTED CRAWLING AIRLINES");
         BufferedReader rd = new BufferedReader(new InputStreamReader(openConnection(urlToRead, "csv", 0, 0)));
         String line;
@@ -79,10 +80,11 @@ public class CrawlerImpl implements Crawler {
         }
         rd.close();
         LOG.info("CRAWLING AIRLINES DONE: " + airlines.size() + " Airlines crawled");
+        return airlines;
     }
 
     @Override
-    public void getMarkets(String urlToRead) throws Exception {
+    public List<Market> getMarkets(String urlToRead) throws Exception {
         LOG.info("STARTED CRAWLING MARKETS");
         BufferedReader rd = new BufferedReader(new InputStreamReader(openConnection(urlToRead, "csv", 0, 0)));
         String line;
@@ -99,10 +101,11 @@ public class CrawlerImpl implements Crawler {
         }
         rd.close();
         LOG.info("CRAWLING MARKETS DONE: " + markets.size() + " markets crawled.");
+        return markets;
     }
 
     @Override
-    public void getRoutes(String urlToRead, int year) throws Exception {
+    public List<Route> getRoutes(String urlToRead, int year) throws Exception {
         LOG.info("STARTED CRAWLING ROUTES");
         String filename = "temp-t100d.zip";
         InputStream rd = openConnection(urlToRead, "T100D", year, 0);
@@ -144,6 +147,7 @@ public class CrawlerImpl implements Crawler {
             file.delete();
         }
         LOG.info("CRAWLING ROUTES DONE: " + routes.size() + " Routes of " + year + " crawled.");
+        return routes;
     }
 
     public void sendDataToBackend() {
