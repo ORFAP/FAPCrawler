@@ -14,6 +14,7 @@ import edu.hm.obreitwi.arch.lab08.SynchronizedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -33,6 +34,8 @@ public class CrawlerController {
     @Autowired
     Crawler crawler;
     private final Logger LOG = LoggerFactory.getLogger(CrawlerController.class);
+    @Value("${fap.backend.basePath}")
+    private String basePath;
 
     @RequestMapping(value = "/crawlIntoBackend", method = RequestMethod.GET)
     public void crawlIntoBackend(@Param("year") String year, @Param("month") String month) throws Exception {
@@ -83,7 +86,7 @@ public class CrawlerController {
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
             new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
-            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true);
+            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), false, basePath);
             pumps.get(i-startMonth).use(new Unzipper<>(downloadfileType, filename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsf)
@@ -97,7 +100,7 @@ public class CrawlerController {
         }
         for (int i = 0; i < sinks.size(); i++) {
             sinks.get(i).join();
-            LOG.info("Sink " + i+1 + " von " + sinks.size() + " beendet");
+            LOG.info("Sink " + (i+1) + " von " + sinks.size() + " beendet");
         }
         LOG.info("Crawling of " + year + " done");
     }

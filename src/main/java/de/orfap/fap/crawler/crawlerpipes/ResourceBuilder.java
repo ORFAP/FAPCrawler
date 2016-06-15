@@ -4,7 +4,6 @@ import de.orfap.fap.crawler.domain.Airline;
 import de.orfap.fap.crawler.domain.Market;
 import de.orfap.fap.crawler.domain.Route;
 import edu.hm.obreitwi.arch.lab08.BaseFilter;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.GregorianCalendar;
 
@@ -15,13 +14,13 @@ public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
     private Object object;
     private String s;
     private boolean listable;
-    @Value("${fap.backend.basePath}")
-    private String basepath;
+    private String basePath;
 
-    public ResourceBuilder(final String s, final Object object, boolean listable) {
+    public ResourceBuilder(final String s, final Object object, boolean listable, final String basePath) {
         this.s = s;
         this.object = object;
         this.listable=listable;
+        this.basePath = basePath;
     }
 
     @Override
@@ -76,9 +75,9 @@ public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
                     output.setDestination(columns[4]);
                 }
                 else{
-                    output.setAirline(basepath + "airlines/" + columns[2]);
-                    output.setSource(basepath + "markets/" + columns[3]);
-                    output.setDestination(basepath + "markets/" + columns[4]);
+                    output.setAirline(basePath + "airlines/" + columns[2]);
+                    output.setSource(basePath + "markets/" + columns[3]);
+                    output.setDestination(basePath + "markets/" + columns[4]);
                 }
                 return (U) output;
             }
