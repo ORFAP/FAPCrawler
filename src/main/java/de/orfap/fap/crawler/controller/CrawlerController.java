@@ -86,7 +86,7 @@ public class CrawlerController {
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
             new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
-            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), false, basePath);
+            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true, basePath);
             pumps.get(i-startMonth).use(new Unzipper<>(downloadfileType, filename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsf)
