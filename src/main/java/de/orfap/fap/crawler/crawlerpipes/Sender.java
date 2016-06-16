@@ -50,6 +50,6 @@ public class Sender<T> extends BaseConsumer<T> {
         } else if (data instanceof List){
             routeClient.create((List)data);
         }
-        numberSendOperations++;
+        numberSendOperations+=((List)data).size();
     }
 }

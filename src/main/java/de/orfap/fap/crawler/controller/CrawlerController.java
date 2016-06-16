@@ -14,14 +14,14 @@ import edu.hm.obreitwi.arch.lab08.SynchronizedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.SynchronousQueue;
-import java.util.zip.ZipFile;
 
 /**
  * Created by Arne on 15.05.2016.
@@ -34,6 +34,8 @@ public class CrawlerController {
     @Autowired
     Crawler crawler;
     private final Logger LOG = LoggerFactory.getLogger(CrawlerController.class);
+    @Value("${fap.backend.basePath}")
+    private String basePath;
 
     @RequestMapping(value = "/crawlIntoBackend", method = RequestMethod.GET)
     public void crawlIntoBackend(@Param("year") String year, @Param("month") String month) throws Exception {
@@ -67,37 +69,44 @@ public class CrawlerController {
         } catch (NumberFormatException nfe) {
             throw new IllegalArgumentException("year/month must be a numerical value");
         }
+
+        //Airlines, Markets and Routes only get crawled if startmonth = 1!
         if (startMonth == 1) {
             crawler.getAirlines("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID");
             crawler.getMarkets("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID");
             crawler.getRoutes("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0", usedYear);
             crawler.sendDataToBackend();
         }
+
         //FlightPipe:
-        Pump<String>[] pumps = new Pump[12];
-        Sink<List<Route>>[] sinks = new Sink[12];
+        ArrayList<Pump<String>> pumps = new ArrayList();
+        ArrayList<Sink<List<Route>>> sinks = new ArrayList();
         for (int i = startMonth; i <= endMonth; i++) {
-            pumps[i - 1] = new Pump<>();
-            sinks[i - 1] = new Sink<>();
+            pumps.add(new Pump<>());
+            sinks.add(new Sink<>());
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
-            Downloader<ZipFile> flightDownloader = new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
-            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true);
-            pumps[i - 1].use(new Unzipper<>(downloadfileType, filename, ""))
+            new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
+            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true, basePath);
+            pumps.get(i - startMonth).use(new Unzipper<>(downloadfileType, filename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsf)
                     .connect(new SynchronizedQueue<>())
                     .connect(new Collector<>())
                     .connect(new Pipe<>())
-                    .connect(sinks[i - 1].use(flightSender));
-            pumps[i - 1].interrupt();
-            sinks[i - 1].interrupt();
+                    .connect(sinks.get(i - startMonth).use(flightSender));
+            pumps.get(i - startMonth).interrupt();
+            sinks.get(i - startMonth).interrupt();
             LOG.info("Started FlightCrawlThread#" + i);
+            if ((i - startMonth) % 4 == 0) {
+                LOG.info("Waiting for FlightCrawlThread#"+i);
+                pumps.get(i - startMonth).join();
+            }
         }
-        for (int i = 0; i < sinks.length; i++) {
-            sinks[i].join();
-            LOG.info("Sink " + i + " beendet");
+        for (int i = 0; i < sinks.size(); i++) {
+            sinks.get(i).join();
+            LOG.info("Sink " + (i + 1) + " von " + sinks.size() + " beendet");
         }
-        LOG.info("Crawling of " + year + " done");
+        LOG.info("Crawling of " + year + ", months " + startMonth + "-" + endMonth + " done");
     }
 }
