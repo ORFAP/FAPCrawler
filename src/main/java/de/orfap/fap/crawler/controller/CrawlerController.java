@@ -70,12 +70,13 @@ public class CrawlerController {
             throw new IllegalArgumentException("year/month must be a numerical value");
         }
 
-        //Crawl airlines, markets and routes
-        crawler.getAirlines("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID");
-        crawler.getMarkets("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID");
-        crawler.getRoutes("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0", usedYear);
-        //And send them to the backend
-        crawler.sendDataToBackend();
+        //Airlines, Markets and Routes only get crawled if startmonth = 1!
+        if (startMonth == 1) {
+            crawler.getAirlines("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID");
+            crawler.getMarkets("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID");
+            crawler.getRoutes("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0", usedYear);
+            crawler.sendDataToBackend();
+        }
 
         //FlightPipe:
         ArrayList<Pump<String>> pumps = new ArrayList();
@@ -87,21 +88,25 @@ public class CrawlerController {
             String downloadfileType = "zip";
             new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
             ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true, basePath);
-            pumps.get(i-startMonth).use(new Unzipper<>(downloadfileType, filename, ""))
+            pumps.get(i - startMonth).use(new Unzipper<>(downloadfileType, filename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsf)
                     .connect(new SynchronizedQueue<>())
                     .connect(new Collector<>())
                     .connect(new Pipe<>())
-                    .connect(sinks.get(i-startMonth).use(flightSender));
-            pumps.get(i-startMonth).interrupt();
-            sinks.get(i-startMonth).interrupt();
+                    .connect(sinks.get(i - startMonth).use(flightSender));
+            pumps.get(i - startMonth).interrupt();
+            sinks.get(i - startMonth).interrupt();
             LOG.info("Started FlightCrawlThread#" + i);
+            if ((i - startMonth) % 4 == 0) {
+                LOG.info("Waiting for FlightCrawlThread#"+i);
+                pumps.get(i - startMonth).join();
+            }
         }
         for (int i = 0; i < sinks.size(); i++) {
             sinks.get(i).join();
-            LOG.info("Sink " + (i+1) + " von " + sinks.size() + " beendet");
+            LOG.info("Sink " + (i + 1) + " von " + sinks.size() + " beendet");
         }
-        LOG.info("Crawling of " + year + " done");
+        LOG.info("Crawling of " + year + ", months " + startMonth + "-" + endMonth + " done");
     }
 }
