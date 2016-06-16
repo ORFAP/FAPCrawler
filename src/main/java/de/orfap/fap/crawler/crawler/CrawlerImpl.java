@@ -180,13 +180,9 @@ public class CrawlerImpl implements Crawler {
         markets.clear();
         usedMarkets.forEach(this::sendMarketToBackend);
         LOG.info("SENT " + usedMarkets.size() + " Markets to Backend, ignored " + existingMarkets.size() + " already existing");
-        Collection<Route> existingRoutes = routeClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
-        routes.stream().filter(route -> !existingRoutes.contains(route)).forEach(this::sendRoutesToBackend);
-        LOG.info("SENT " + (routes.stream().filter(route -> !existingRoutes.contains(route))).count() + " Routes to Backend, ignored " + existingRoutes.size() + " already existing");
+        routes.stream().forEach(this::sendRoutesToBackend);
+        LOG.info("SENT " + (routes.stream()).count() + " Routes to Backend");
         routes.clear();
-//        flights.stream().filter(flight -> !existingRoutes.contains(flight)).forEach(this::sendRoutesToBackend);
-//        LOG.info("SENT " + (flights.stream().filter(flight -> !existingRoutes.contains(flight))).count() + " Flights to Backend, ignored " + existingRoutes.size() + " already existing");
-//        flights.clear();
         LOG.info("SENDING Airlines, Markets & Routes to Backend DONE");
     }
 

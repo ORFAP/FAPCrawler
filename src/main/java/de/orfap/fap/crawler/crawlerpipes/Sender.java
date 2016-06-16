@@ -20,7 +20,7 @@ import java.util.List;
  */
 @Service
 public class Sender<T> extends BaseConsumer<T> {
-    private static int numberSendOperations;
+    private int numberSendOperations;
     //Warnings suppressed because of: No beans needed
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
@@ -50,6 +50,6 @@ public class Sender<T> extends BaseConsumer<T> {
         } else if (data instanceof List){
             routeClient.create((List)data);
         }
-        numberSendOperations++;
+        numberSendOperations+=((List)data).size();
     }
 }
