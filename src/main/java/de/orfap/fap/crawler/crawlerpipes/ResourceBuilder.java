@@ -65,7 +65,6 @@ public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
                         delay = Double.parseDouble(columns[5]);
                     }
                     output.setDelays(delay);
-                    delay = 0;
                 }
                 output.setPassengerCount(0);
                 output.setFlightCount(1);
