@@ -84,6 +84,8 @@ public class CrawlerController {
         for (int i = startMonth; i <= endMonth; i++) {
             pumps.add(new Pump<>());
             sinks.add(new Sink<>());
+        }
+        for (int i = startMonth; i <= endMonth; i++) {
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
             new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
