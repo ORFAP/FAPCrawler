@@ -7,6 +7,7 @@ import de.orfap.fap.crawler.crawlerpipes.ResourceBuilder;
 import de.orfap.fap.crawler.crawlerpipes.Sender;
 import de.orfap.fap.crawler.crawlerpipes.Unzipper;
 import de.orfap.fap.crawler.domain.Route;
+import de.orfap.fap.crawler.feign.RouteClient;
 import edu.hm.obreitwi.arch.lab08.Pipe;
 import edu.hm.obreitwi.arch.lab08.Pump;
 import edu.hm.obreitwi.arch.lab08.Sink;
@@ -36,6 +37,9 @@ public class CrawlerController {
     private final Logger LOG = LoggerFactory.getLogger(CrawlerController.class);
     @Value("${fap.backend.basePath}")
     private String basePath;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    RouteClient routeClient;
 
     @RequestMapping(value = "/crawlIntoBackend", method = RequestMethod.GET)
     public void crawlIntoBackend(@Param("year") String year, @Param("month") String month) throws Exception {
@@ -81,10 +85,11 @@ public class CrawlerController {
         ArrayList<Pump<String>> pumps = new ArrayList();
         ArrayList<Sink<List<Route>>> sinks = new ArrayList();
         for (int i = startMonth; i <= endMonth; i++) {
+            if(routeClient.isRouteInMonthOfYear(usedYear+"-"+i)){
+                continue;
+            }
             pumps.add(new Pump<>());
             sinks.add(new Sink<>());
-        }
-        for (int i = startMonth; i <= endMonth; i++) {
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
             new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
