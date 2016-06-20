@@ -62,16 +62,15 @@ public class StringExtractor<T, U> extends BaseFilter<T, U> {
             e.printStackTrace();
         }
         if (output != null) {
-//            try {
-            //Warum? hat sicher was mit den Routen zu tun, bei Airlines/Markets ist es hinderlich.
-//                if (output.startsWith("\"")) {
-//                    output = br.readLine();
-//                }
+            try {
+                if (!output.matches("\"[0-9]{1,1}.*")) {
+                    output = br.readLine();
+                }
             //noinspection unchecked
             return (U) output;
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+            } catch (IOException e) {
+                 e.printStackTrace();
+            }
         }
         try {
             br.close();

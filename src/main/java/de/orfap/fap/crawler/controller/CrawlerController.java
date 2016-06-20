@@ -5,6 +5,8 @@ import de.orfap.fap.crawler.crawlerpipes.*;
 import de.orfap.fap.crawler.domain.Airline;
 import de.orfap.fap.crawler.domain.Market;
 import de.orfap.fap.crawler.domain.Route;
+import de.orfap.fap.crawler.feign.AirlineClient;
+import de.orfap.fap.crawler.feign.MarketClient;
 import de.orfap.fap.crawler.feign.RouteClient;
 import edu.hm.obreitwi.arch.lab08.Pipe;
 import edu.hm.obreitwi.arch.lab08.Pump;
@@ -40,9 +42,16 @@ public class CrawlerController {
     private final Logger LOG = LoggerFactory.getLogger(CrawlerController.class);
     @Value("${fap.backend.basePath}")
     private String basePath;
+    //Warnings suppressed because of: No beans needed
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     RouteClient routeClient;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private AirlineClient airlineClient;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private MarketClient marketClient;
 
 
     private final HashMap<Integer, Market> markets = new HashMap<>();
@@ -117,39 +126,79 @@ public class CrawlerController {
         airlinePump.join();
         marketPump.join();
 
-        //FlightPipe:
-        ArrayList<Pump<String>> pumps = new ArrayList();
-        ArrayList<Sink<List<Route>>> sinks = new ArrayList();
+        //RoutePipe:
+        ArrayList<Pump<String>> routePumps = new ArrayList();
+        ArrayList<Sink<List<Route>>> routeSinks = new ArrayList();
+
         for (int i = startMonth; i <= endMonth; i++) {
             if (routeClient.isRouteInMonthOfYear(usedYear + "-" + i)) {
                 continue;
             }
-            synchronized (pumps) {
-                pumps.add(new Pump<>());
-                sinks.add(new Sink<>());
+            synchronized (routePumps) {
+                routePumps.add(new Pump<>());
+                routeSinks.add(new Sink<>());
+            }
+            String filename = "routes-" + usedYear + "-" + i + ".zip";
+            String downloadfileType = "zip";
+            new Downloader<>(routeURL, usedYear, i, downloadfileType, filename);
+            ResourceBuilder<String, Route> rbsr = new ResourceBuilder<>("", new Route(), true, basePath);
+            routePumps.get(i - startMonth).use(new StringExtractor<>(downloadfileType, filename, ""))
+                    .connect(new Pipe<>())
+                    .connect(rbsr)
+                    .connect(new Pipe<>())
+                    .connect(new AirlineMarketSender<>(airlines, usedAirlines, markets, usedMarkets, airlineClient, marketClient))
+                    .connect(new SynchronizedQueue<>())
+                    .connect(new Collector<>())
+                    .connect(new Pipe<>())
+                    .connect(routeSinks.get(i - startMonth).use(flightSender));
+            routePumps.get(i - startMonth).interrupt();
+            routeSinks.get(i - startMonth).interrupt();
+            LOG.info("Started RouteCrawlThread#" + i);
+            if ((i - startMonth) % 4 == 0) {
+                LOG.info("Waiting for RouteCrawlThread#" + i);
+                routePumps.get(i - startMonth).join();
+            }
+        }
+        for (int i = 0; i < routeSinks.size(); i++) {
+            routeSinks.get(i).join();
+            LOG.info("Sink " + (i + 1) + " of " + routeSinks.size() + " terminated");
+        }
+
+
+
+        //FlightPipe:
+        ArrayList<Pump<String>> flightPumps = new ArrayList();
+        ArrayList<Sink<List<Route>>> flightSinks = new ArrayList();
+        for (int i = startMonth; i <= endMonth; i++) {
+            if (routeClient.isRouteInMonthOfYear(usedYear + "-" + i)) {
+                continue;
+            }
+            synchronized (flightPumps) {
+                flightPumps.add(new Pump<>());
+                flightSinks.add(new Sink<>());
             }
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
             new Downloader<>(flightURL, usedYear, i, downloadfileType, filename);
             ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true, basePath);
-            pumps.get(i - startMonth).use(new StringExtractor<>(downloadfileType, filename, ""))
+            flightPumps.get(i - startMonth).use(new StringExtractor<>(downloadfileType, filename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsf)
                     .connect(new SynchronizedQueue<>())
                     .connect(new Collector<>())
                     .connect(new Pipe<>())
-                    .connect(sinks.get(i - startMonth).use(flightSender));
-            pumps.get(i - startMonth).interrupt();
-            sinks.get(i - startMonth).interrupt();
+                    .connect(flightSinks.get(i - startMonth).use(flightSender));
+            flightPumps.get(i - startMonth).interrupt();
+            flightSinks.get(i - startMonth).interrupt();
             LOG.info("Started FlightCrawlThread#" + i);
             if ((i - startMonth) % 4 == 0) {
                 LOG.info("Waiting for FlightCrawlThread#" + i);
-                pumps.get(i - startMonth).join();
+                flightPumps.get(i - startMonth).join();
             }
         }
-        for (int i = 0; i < sinks.size(); i++) {
-            sinks.get(i).join();
-            LOG.info("Sink " + (i + 1) + " von " + sinks.size() + " beendet");
+        for (int i = 0; i < flightSinks.size(); i++) {
+            flightSinks.get(i).join();
+            LOG.info("Sink " + (i + 1) + " of " + flightSinks.size() + " terminated");
         }
         LOG.info("Crawling of " + year + ", months " + startMonth + "-" + endMonth + " done");
     }
