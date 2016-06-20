@@ -34,7 +34,7 @@ public interface Crawler {
      * @param year      the year to be crawled
      * @throws Exception
      */
-    void getRoutes(@SuppressWarnings("SameParameterValue") String urlToRead, int year) throws Exception;
+    void getRoutes(@SuppressWarnings("SameParameterValue") String urlToRead, int year, int month) throws Exception;
 
     /**
      * Sends the crawlsinged (as in crawled & parsed) airlines, markets, routes & flights to the backend.

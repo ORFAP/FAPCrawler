@@ -30,6 +30,10 @@ import java.util.List;
 @SuppressWarnings("DefaultFileTemplate")
 @RestController
 public class CrawlerController {
+    private final String airlineURL="http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID";
+    private final String marketURL="http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID";
+    private final String routeURL="http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0";
+    private final String flightURL="http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0";
     @Autowired
     Sender<List<Route>> flightSender;
     @Autowired
@@ -75,9 +79,9 @@ public class CrawlerController {
         }
 
         //Crawl airlines, markets and routes
-        crawler.getAirlines("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID");
-        crawler.getMarkets("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID");
-        crawler.getRoutes("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0", usedYear);
+        crawler.getAirlines(airlineURL);
+        crawler.getMarkets(marketURL);
+        crawler.getRoutes(routeURL, usedYear, startMonth);
         //And send them to the backend
         crawler.sendDataToBackend();
 
@@ -85,14 +89,14 @@ public class CrawlerController {
         ArrayList<Pump<String>> pumps = new ArrayList();
         ArrayList<Sink<List<Route>>> sinks = new ArrayList();
         for (int i = startMonth; i <= endMonth; i++) {
-            if(routeClient.isRouteInMonthOfYear(usedYear+"-"+i)){
-                continue;
-            }
+//            if(routeClient.isRouteInMonthOfYear(usedYear+"-"+i)){
+//                continue;
+//            }
             pumps.add(new Pump<>());
             sinks.add(new Sink<>());
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
-            new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
+            new Downloader<>(flightURL, usedYear, i, downloadfileType, filename);
             ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true, basePath);
             pumps.get(i - startMonth).use(new Unzipper<>(downloadfileType, filename, ""))
                     .connect(new Pipe<>())
