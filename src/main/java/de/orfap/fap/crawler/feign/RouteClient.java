@@ -1,6 +1,5 @@
 package de.orfap.fap.crawler.feign;
 
-import com.netflix.ribbon.proxy.annotation.Hystrix;
 import de.orfap.fap.crawler.domain.Route;
 import org.springframework.cloud.netflix.feign.FeignClient;
 import org.springframework.hateoas.Resource;

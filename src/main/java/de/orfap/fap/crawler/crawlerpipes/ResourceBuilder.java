@@ -32,7 +32,12 @@ public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
                 final Airline output;
                 columns = workingdata.split(",");
                 if (columns[0].matches("\"[0-9]{1,}\"")) {
-                    output = new Airline(columns[1].replaceAll("(\"|\\([1-9]\\))", "").trim(), columns[0].replaceAll("\"", ""));
+                    String name = columns[1].replaceAll("(\"|\\([1-9]\\))", "").trim();
+                    //Remove parts with information about merge
+                    if (name.contains("(Merged")){
+                        name = name.substring(0, name.indexOf("(Merged")).trim();
+                    }
+                    output = new Airline(name, columns[0].replaceAll("\"", ""));
                 } else {
                     output = new Airline("", "");
                 }
