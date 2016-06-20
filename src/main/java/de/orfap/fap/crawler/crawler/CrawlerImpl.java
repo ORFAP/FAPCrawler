@@ -148,8 +148,9 @@ public class CrawlerImpl implements Crawler {
         Collection<Airline> existingAirlines = airlineClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         Airline airline;
         for (int i = 0; i < routes.size(); i++) {
-            if (airlines.containsValue(routes.get(i).getAirline().split("/")[2])) {
-                airline = airlines.get(routes.get(i).getAirline().split("/")[2]);
+            String key=routes.get(i).getAirline().split("/")[4];
+            if (airlines.containsKey(key)) {
+                airline = airlines.get(routes.get(i).getAirline().split("/")[4]);
                 if (!existingAirlines.contains(airline)) {
                     usedAirlines.add(airline);
                     i = routes.size();
@@ -163,8 +164,8 @@ public class CrawlerImpl implements Crawler {
         Collection<Market> existingMarkets = marketClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
         Market market;
         for (int i = 0; i < routes.size(); i++) {
-            if (!markets.containsValue(routes.get(i).getDestination().split("/")[2])) {
-                market = markets.get(routes.get(i).getDestination().split("/")[2]);
+            if (markets.containsKey(routes.get(i).getDestination().split("/")[4])) {
+                market = markets.get(routes.get(i).getDestination().split("/")[4]);
                 if (!existingMarkets.contains(market)) {
                     usedMarkets.add(market);
                     i = routes.size();

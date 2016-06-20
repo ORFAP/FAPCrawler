@@ -23,8 +23,6 @@ import java.util.zip.ZipFile;
  */
 public class Downloader<T> extends BaseProducer<T> {
     private final Logger LOG = LoggerFactory.getLogger(Downloader.class);
-    private File file;
-    private ZipFile zipFile;
     private String downloadfileType;
     private String url;
     private int year;
@@ -45,9 +43,7 @@ public class Downloader<T> extends BaseProducer<T> {
             HttpURLConnection conn = (HttpURLConnection) urlToRead.openConnection();
             if (downloadfileType.equals("csv")) {
                 conn.setRequestMethod("GET");
-                this.filename = conn.getHeaderField("Content-Disposition").split("filename=")[1].replace("\"", "");
                 Files.copy(conn.getInputStream(), Paths.get(filename));
-                outputFile = new File(filename);
             } else if (downloadfileType.equals("zip")) {
                 conn.setRequestMethod("POST");
                 setReqPropONTIME(conn, year, month);

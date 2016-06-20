@@ -17,14 +17,14 @@ import java.util.zip.ZipFile;
 /**
  * Created by o4 on 03.06.16.
  */
-public class Unzipper<T, U> extends BaseFilter<T, U> {
-    private final Logger LOG = LoggerFactory.getLogger(Unzipper.class);
+public class StringExtractor<T, U> extends BaseFilter<T, U> {
+    private final Logger LOG = LoggerFactory.getLogger(StringExtractor.class);
     private String downloadfileType;
     private String filename;
     private String s;
     private BufferedReader br;
 
-    public Unzipper(final String downloadfileType, final String filename, final String s) {
+    public StringExtractor(final String downloadfileType, final String filename, final String s) {
         this.downloadfileType = downloadfileType;
         this.filename = filename;
         this.s = s;
@@ -62,15 +62,16 @@ public class Unzipper<T, U> extends BaseFilter<T, U> {
             e.printStackTrace();
         }
         if (output != null) {
-            try {
-                if (output.startsWith("\"")) {
-                    output = br.readLine();
-                }
-                //noinspection unchecked
-                return (U) output;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+            //Warum? hat sicher was mit den Routen zu tun, bei Airlines/Markets ist es hinderlich.
+//                if (output.startsWith("\"")) {
+//                    output = br.readLine();
+//                }
+            //noinspection unchecked
+            return (U) output;
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         }
         try {
             br.close();

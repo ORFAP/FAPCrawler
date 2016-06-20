@@ -43,13 +43,16 @@ public class Sender<T> extends BaseConsumer<T> {
         }
         if (data instanceof Airline && !(((Airline) data).getId().isEmpty() || ((Airline) data).getName().isEmpty())) {
             airlineClient.create((Airline) data);
+            numberSendOperations++;
         } else if (data instanceof Market && !(((Market) data).getId().isEmpty() || ((Market) data).getName().isEmpty())) {
             marketClient.create((Market) data);
+            numberSendOperations++;
         } else if (data instanceof Route) {
             routeClient.create((Route) data);
+            numberSendOperations++;
         } else if (data instanceof List){
             routeClient.create((List)data);
+            numberSendOperations+=((List)data).size();
         }
-        numberSendOperations+=((List)data).size();
     }
 }
