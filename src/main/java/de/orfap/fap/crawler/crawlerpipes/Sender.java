@@ -50,9 +50,9 @@ public class Sender<T> extends BaseConsumer<T> {
         } else if (data instanceof Route) {
             routeClient.create((Route) data);
             numberSendOperations++;
-        } else if (data instanceof List){
-            routeClient.create((List)data);
-            numberSendOperations+=((List)data).size();
+        } else if (data instanceof List) {
+            routeClient.create((List) data);
+            numberSendOperations += ((List) data).size();
         }
     }
 }

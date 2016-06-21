@@ -46,7 +46,14 @@ public class Downloader<T> extends BaseProducer<T> {
                 Files.copy(conn.getInputStream(), Paths.get(filename));
             } else if (downloadfileType.equals("zip")) {
                 conn.setRequestMethod("POST");
-                setReqPropONTIME(conn, year, month);
+                if (filename.contains("route")) {
+                    setReqPropT100D(conn, year, month);
+                } else if (filename.contains("flight")){
+                    setReqPropONTIME(conn, year, month);
+                } else{
+                    LOG.error("Unknown filename");
+                    throw new IllegalArgumentException("Unknown filename");
+                }
                 Files.copy(conn.getInputStream(), Paths.get(filename));
             }
             LOG.info("File " + filename + " downloaded");
@@ -75,6 +82,30 @@ public class Downloader<T> extends BaseProducer<T> {
         try {
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode(" SELECT DAY_OF_WEEK,FL_DATE,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,ARR_DELAY_NEW,CANCELLED FROM  T_ONTIME WHERE Month =" + month + " AND YEAR=" + year + " AND ORIGIN_CITY_MARKET_ID=31703", charset)));
             postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("varlist", charset), URLEncoder.encode("DAY_OF_WEEK,FL_DATE,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID,ARR_DELAY_NEW,CANCELLED", charset)));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
+        wr.writeBytes(postHTTPform.toString());
+        wr.flush();
+        wr.close();
+    }
+
+    /**
+     * Configures the HttpURLConnection for the T100D table.
+     *
+     * @param conn  the Connection to be configured
+     * @param year  the year to be crawled (no offset, e.g. 2015 translates to 2015)
+     * @param month the month to be crawled. Range 1-12.
+     * @throws IOException
+     */
+    private void setReqPropT100D(HttpURLConnection conn, int year, int month) throws IOException {
+        conn.setDoOutput(true);
+        String charset = "UTF-8";
+        StringBuilder postHTTPform = new StringBuilder();
+        try {
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("sqlstr", charset), URLEncoder.encode("SELECT YEAR,MONTH,DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID FROM  T_T100D_SEGMENT_ALL_CARRIER WHERE YEAR=" + year + " AND MONTH=" + month + " AND ORIGIN_CITY_MARKET_ID=31703", charset)));
+            postHTTPform.append(String.format("%s=%s&", URLEncoder.encode("varlist", charset), URLEncoder.encode("YEAR,MONTH,DEPARTURES_SCHEDULED,DEPARTURES_PERFORMED,PASSENGERS,AIRLINE_ID,ORIGIN_CITY_MARKET_ID,DEST_CITY_MARKET_ID", charset)));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

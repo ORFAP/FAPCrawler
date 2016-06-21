@@ -11,15 +11,17 @@ import java.util.GregorianCalendar;
  * Created by o4 on 03.06.16.
  */
 public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
-    private Object object;
-    private String s;
-    private boolean listable;
-    private String basePath;
+    private final Object object;
+    private final String s;
+    private final boolean listAble;
+    private final boolean isRoute;
+    private final String basePath;
 
-    public ResourceBuilder(final String s, final Object object, boolean listable, final String basePath) {
+    public ResourceBuilder(final String s, final Object object, final boolean listAble, final boolean isRoute, final String basePath) {
         this.s = s;
         this.object = object;
-        this.listable=listable;
+        this.listAble = listAble;
+        this.isRoute = isRoute;
         this.basePath = basePath;
     }
 
@@ -34,7 +36,7 @@ public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
                 if (columns[0].matches("\"[0-9]{1,}\"")) {
                     String name = columns[1].replaceAll("(\"|\\([1-9]\\))", "").trim();
                     //Remove parts with information about merge
-                    if (name.contains("(Merged")){
+                    if (name.contains("(Merged")) {
                         name = name.substring(0, name.indexOf("(Merged")).trim();
                     }
                     output = new Airline(name, columns[0].replaceAll("\"", ""));
@@ -54,34 +56,56 @@ public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
                 //noinspection unchecked
                 return (U) output;
             } else if (object instanceof Route) {
-                final Route output;
-                double delay = 0;
+                final Route output = new Route();
                 columns = workingdata.split(",");
-                // "DAY_OF_WEEK","FL_DATE","AIRLINE_ID","ORIGIN_CITY_MARKET_ID"
-                // "DEST_CITY_MARKET_ID","ARR_DELAY_NEW","CANCELLED"
-                output = new Route();
-                GregorianCalendar gregorianCalendar = new GregorianCalendar(Integer.parseInt(columns[1].substring(0, 4)), Integer.parseInt(columns[1].substring(5, 7)) - 1, Integer.parseInt(columns[1].substring(8, 10)));
-                output.setDate(gregorianCalendar.getTime());
-                output.setCancelled(Double.parseDouble(columns[6]));
-                //Cancelled Flights have empty arr delay fields
-                if (Double.parseDouble(columns[6]) == 0) {
-                    //Some arr delay fields are empty
-                    if (!columns[5].isEmpty()) {
-                        delay = Double.parseDouble(columns[5]);
+                if (isRoute) {
+                    // "YEAR","MONTH","DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
+                    // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
+                    // "DEST_CITY_MARKET_ID"
+                    GregorianCalendar gregorianCalendar = new GregorianCalendar(Integer.parseInt(columns[0]), Integer.parseInt(columns[1])-1, 1,0,0,0);
+                    output.setDate(gregorianCalendar.getTime());
+                    output.setCancelled(0);
+                    output.setDelays(0);
+                    output.setPassengerCount(Double.parseDouble(columns[4]));
+                    output.setFlightCount(Double.parseDouble(columns[3]));
+                    if(listAble) {
+                        output.setAirline(columns[5]);
+                        output.setSource(columns[6]);
+                        output.setDestination(columns[7]);
+                    }else{
+                        output.setAirline(basePath + "airlines/" + columns[5]);
+                        output.setSource(basePath + "markets/" + columns[6]);
+                        output.setDestination(basePath + "markets/" + columns[7]);
                     }
-                    output.setDelays(delay);
-                }
-                output.setPassengerCount(0);
-                output.setFlightCount(1);
-                if(listable) {
-                    output.setAirline(columns[2]);
-                    output.setSource(columns[3]);
-                    output.setDestination(columns[4]);
-                }
-                else{
-                    output.setAirline(basePath + "airlines/" + columns[2]);
-                    output.setSource(basePath + "markets/" + columns[3]);
-                    output.setDestination(basePath + "markets/" + columns[4]);
+                    if (output.getAirline() == null || output.getDate() == null || output.getDestination() == null || output.getSource() == null) {
+                        throw new AssertionError("This is bad");
+                    }
+                } else {
+                    double delay = 0;
+                    // "DAY_OF_WEEK","FL_DATE","AIRLINE_ID","ORIGIN_CITY_MARKET_ID"
+                    // "DEST_CITY_MARKET_ID","ARR_DELAY_NEW","CANCELLED"
+                    GregorianCalendar gregorianCalendar = new GregorianCalendar(Integer.parseInt(columns[1].substring(0, 4)), Integer.parseInt(columns[1].substring(5, 7)) - 1, Integer.parseInt(columns[1].substring(8, 10)),0,0,0);
+                    output.setDate(gregorianCalendar.getTime());
+                    output.setCancelled(Double.parseDouble(columns[6]));
+                    //Cancelled Flights have empty arr delay fields
+                    if (Double.parseDouble(columns[6]) == 0) {
+                        //Some arr delay fields are empty
+                        if (!columns[5].isEmpty()) {
+                            delay = Double.parseDouble(columns[5]);
+                        }
+                        output.setDelays(delay);
+                    }
+                    output.setPassengerCount(0);
+                    output.setFlightCount(1);
+                    if (listAble) {
+                        output.setAirline(columns[2]);
+                        output.setSource(columns[3]);
+                        output.setDestination(columns[4]);
+                    } else {
+                        output.setAirline(basePath + "airlines/" + columns[2]);
+                        output.setSource(basePath + "markets/" + columns[3]);
+                        output.setDestination(basePath + "markets/" + columns[4]);
+                    }
                 }
                 return (U) output;
             }

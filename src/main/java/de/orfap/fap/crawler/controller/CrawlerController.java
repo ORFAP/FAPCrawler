@@ -102,7 +102,7 @@ public class CrawlerController {
         //AirlinePipe:
         String airlineFilename="airlines.csv";
         new Downloader<>(airlineURL, usedYear,startMonth,"csv",airlineFilename);
-        ResourceBuilder<String, Airline> rbsa = new ResourceBuilder<>("", new Airline(), false, basePath);
+        ResourceBuilder<String, Airline> rbsa = new ResourceBuilder<>("", new Airline(), false, false, basePath);
         Pump<String> airlinePump=new Pump<>();
                 airlinePump.use(new StringExtractor<>("csv",airlineFilename, ""))
                 .connect(new Pipe<>())
@@ -114,7 +114,7 @@ public class CrawlerController {
         //MarketPipe:
         String marketFilename="markets.csv";
         new Downloader<>(marketURL, usedYear,startMonth,"csv",marketFilename);
-        ResourceBuilder<String, Airline> rbsm = new ResourceBuilder<>("", new Market(), false, basePath);
+        ResourceBuilder<String, Airline> rbsm = new ResourceBuilder<>("", new Market(), false, false, basePath);
         Pump<String> marketPump=new Pump<>();
         marketPump.use(new StringExtractor<>("csv",marketFilename, ""))
                 .connect(new Pipe<>())
@@ -138,11 +138,11 @@ public class CrawlerController {
                 routePumps.add(new Pump<>());
                 routeSinks.add(new Sink<>());
             }
-            String filename = "routes-" + usedYear + "-" + i + ".zip";
+            String routeFilename = "routes-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
-            new Downloader<>(routeURL, usedYear, i, downloadfileType, filename);
-            ResourceBuilder<String, Route> rbsr = new ResourceBuilder<>("", new Route(), true, basePath);
-            routePumps.get(i - startMonth).use(new StringExtractor<>(downloadfileType, filename, ""))
+            new Downloader<>(routeURL, usedYear, i, downloadfileType, routeFilename);
+            ResourceBuilder<String, Route> rbsr = new ResourceBuilder<>("", new Route(), true, true, basePath);
+            routePumps.get(i - startMonth).use(new StringExtractor<>(downloadfileType, routeFilename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsr)
                     .connect(new Pipe<>())
@@ -180,7 +180,7 @@ public class CrawlerController {
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
             new Downloader<>(flightURL, usedYear, i, downloadfileType, filename);
-            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true, basePath);
+            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true, false, basePath);
             flightPumps.get(i - startMonth).use(new StringExtractor<>(downloadfileType, filename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsf)
