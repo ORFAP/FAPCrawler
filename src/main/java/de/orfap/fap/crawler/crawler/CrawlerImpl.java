@@ -113,7 +113,7 @@ public class CrawlerImpl implements Crawler {
 
             String routeFilename = "routes-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
-            //new Downloader<>(routeURL, usedYear, i, downloadfileType, routeFilename);
+            new Downloader<>(routeURL, usedYear, i, downloadfileType, routeFilename);
             RouteResourceBuilder rbsr = new RouteResourceBuilder(true, basePath);
             routePumps.get(i - startMonth).use(new StringExtractor<>(downloadfileType, routeFilename, ""))
                 .connect(new Pipe<>())
@@ -156,7 +156,7 @@ public class CrawlerImpl implements Crawler {
 
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
-            //new Downloader<>(flightURL, usedYear, i, downloadfileType, filename);
+            new Downloader<>(flightURL, usedYear, i, downloadfileType, filename);
             FlightResourceBuilder rbsf = new FlightResourceBuilder(true, basePath);
             flightPumps.get(i - startMonth).use(new StringExtractor<>(downloadfileType, filename, ""))
                 .connect(new Pipe<>())
