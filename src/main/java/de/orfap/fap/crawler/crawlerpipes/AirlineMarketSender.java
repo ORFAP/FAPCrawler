@@ -12,7 +12,7 @@ import java.util.HashMap;
 /**
  * Created by ifw13017 on 20.06.2016.
  */
-public class AirlineMarketSender<T> extends BaseFilter<T,T> {
+public class AirlineMarketSender<T> extends BaseFilter<T, T> {
     private HashMap airlines;
     private HashMap usedAirlines;
     private HashMap markets;
@@ -25,8 +25,8 @@ public class AirlineMarketSender<T> extends BaseFilter<T,T> {
         this.usedAirlines = usedAirlines;
         this.markets = markets;
         this.usedMarkets = usedMarkets;
-        this.airlineClient=airlineClient;
-        this.marketClient=marketClient;
+        this.airlineClient = airlineClient;
+        this.marketClient = marketClient;
     }
 
     @Override
@@ -34,23 +34,29 @@ public class AirlineMarketSender<T> extends BaseFilter<T,T> {
         if (data instanceof Route) {
             String keyAirline = ((Route) data).getAirline();
             if (!usedAirlines.containsKey(keyAirline)) {
-                synchronized(airlines) {
-                    airlineClient.create((Airline)airlines.get(keyAirline));
-                    usedAirlines.put(keyAirline, airlines.get(keyAirline));
+                synchronized (airlines) {
+                    if (!usedAirlines.containsKey(keyAirline)) {
+                        airlineClient.create((Airline) airlines.get(keyAirline));
+                        usedAirlines.put(keyAirline, airlines.get(keyAirline));
+                    }
                 }
             }
             String keySource = ((Route) data).getSource();
             if (!usedMarkets.containsKey(keySource)) {
-                synchronized(markets) {
-                    marketClient.create((Market)markets.get(keySource));
-                    usedMarkets.put(keySource, markets.get(keySource));
+                synchronized (markets) {
+                    if (!usedMarkets.containsKey(keySource)) {
+                        marketClient.create((Market) markets.get(keySource));
+                        usedMarkets.put(keySource, markets.get(keySource));
+                    }
                 }
             }
             String keyDestination = ((Route) data).getDestination();
             if (!usedMarkets.containsKey(keyDestination)) {
-                synchronized(markets) {
-                    marketClient.create((Market)markets.get(keyDestination));
-                    usedMarkets.put(keyDestination, markets.get(keyDestination));
+                synchronized (markets) {
+                    if (!usedMarkets.containsKey(keyDestination)) {
+                        marketClient.create((Market) markets.get(keyDestination));
+                        usedMarkets.put(keyDestination, markets.get(keyDestination));
+                    }
                 }
             }
             return data;

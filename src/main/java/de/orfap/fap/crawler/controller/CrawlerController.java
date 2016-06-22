@@ -1,7 +1,16 @@
 package de.orfap.fap.crawler.controller;
 
-import de.orfap.fap.crawler.crawler.Crawler;
-import de.orfap.fap.crawler.crawlerpipes.*;
+import de.orfap.fap.crawler.crawlerpipes.AirlineMarketSender;
+import de.orfap.fap.crawler.crawlerpipes.AirlineResourceBuilder;
+import de.orfap.fap.crawler.crawlerpipes.Collector;
+import de.orfap.fap.crawler.crawlerpipes.Downloader;
+import de.orfap.fap.crawler.crawlerpipes.FlightResourceBuilder;
+import de.orfap.fap.crawler.crawlerpipes.HashMapAdder;
+import de.orfap.fap.crawler.crawlerpipes.MarketResourceBuilder;
+import de.orfap.fap.crawler.crawlerpipes.ResourceBuilder;
+import de.orfap.fap.crawler.crawlerpipes.RouteResourceBuilder;
+import de.orfap.fap.crawler.crawlerpipes.Sender;
+import de.orfap.fap.crawler.crawlerpipes.StringExtractor;
 import de.orfap.fap.crawler.domain.Airline;
 import de.orfap.fap.crawler.domain.Market;
 import de.orfap.fap.crawler.domain.Route;
@@ -35,10 +44,11 @@ public class CrawlerController {
     private final String marketURL = "http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID";
     private final String routeURL = "http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0";
     private final String flightURL = "http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0";
-    @Autowired
+    private final HashMap<Integer, Market> markets = new HashMap<>();
+    private final HashMap<Integer, Market> usedMarkets = new HashMap<>();
+    private final HashMap<Integer, Airline> airlines = new HashMap<>();
+    private final HashMap<Integer, Airline> usedAirlines = new HashMap<>();@Autowired
     Sender<List<Route>> flightSender;
-    @Autowired
-    Crawler crawler;
     private final Logger LOG = LoggerFactory.getLogger(CrawlerController.class);
     @Value("${fap.backend.basePath}")
     private String basePath;
@@ -52,12 +62,6 @@ public class CrawlerController {
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     private MarketClient marketClient;
-
-
-    private final HashMap<Integer, Market> markets = new HashMap<>();
-    private final HashMap<Integer, Market> usedMarkets = new HashMap<>();
-    private final HashMap<Integer, Airline> airlines = new HashMap<>();
-    private final HashMap<Integer, Airline> usedAirlines = new HashMap<>();
 
     @RequestMapping(value = "/crawlIntoBackend", method = RequestMethod.GET)
     public void crawlIntoBackend(@Param("year") String year, @Param("month") String month) throws Exception {
@@ -92,19 +96,12 @@ public class CrawlerController {
             throw new IllegalArgumentException("year/month must be a numerical value");
         }
 
-        //Crawl airlines, markets and routes
-//        crawler.getAirlines(airlineURL);
-//        crawler.getMarkets(marketURL);
-//        crawler.getRoutes(routeURL, usedYear, startMonth);
-        //And send them to the backend
-//        crawler.sendDataToBackend();
-
         //AirlinePipe:
-        String airlineFilename="airlines.csv";
-        new Downloader<>(airlineURL, usedYear,startMonth,"csv",airlineFilename);
-        ResourceBuilder<String, Airline> rbsa = new ResourceBuilder<>("", new Airline(), false, false, basePath);
-        Pump<String> airlinePump=new Pump<>();
-                airlinePump.use(new StringExtractor<>("csv",airlineFilename, ""))
+        String airlineFilename = "airlines.csv";
+        new Downloader<>(airlineURL, usedYear, startMonth, "csv", airlineFilename);
+        ResourceBuilder<String, Airline> rbsa = new AirlineResourceBuilder<>(false, basePath);
+        Pump<String> airlinePump = new Pump<>();
+        airlinePump.use(new StringExtractor<>("csv", airlineFilename, ""))
                 .connect(new Pipe<>())
                 .connect(rbsa)
                 .connect(new Pipe<>())
@@ -112,11 +109,11 @@ public class CrawlerController {
         airlinePump.interrupt();
 
         //MarketPipe:
-        String marketFilename="markets.csv";
-        new Downloader<>(marketURL, usedYear,startMonth,"csv",marketFilename);
-        ResourceBuilder<String, Airline> rbsm = new ResourceBuilder<>("", new Market(), false, false, basePath);
-        Pump<String> marketPump=new Pump<>();
-        marketPump.use(new StringExtractor<>("csv",marketFilename, ""))
+        String marketFilename = "markets.csv";
+        new Downloader<>(marketURL, usedYear, startMonth, "csv", marketFilename);
+        ResourceBuilder<String, Market> rbsm = new MarketResourceBuilder<>(false, basePath);
+        Pump<String> marketPump = new Pump<>();
+        marketPump.use(new StringExtractor<>("csv", marketFilename, ""))
                 .connect(new Pipe<>())
                 .connect(rbsm)
                 .connect(new Pipe<>())
@@ -129,7 +126,6 @@ public class CrawlerController {
         //RoutePipe:
         ArrayList<Pump<String>> routePumps = new ArrayList();
         ArrayList<Sink<List<Route>>> routeSinks = new ArrayList();
-
         for (int i = startMonth; i <= endMonth; i++) {
             if (routeClient.isRouteInMonthOfYear(usedYear + "-" + i)) {
                 continue;
@@ -141,7 +137,7 @@ public class CrawlerController {
             String routeFilename = "routes-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
             new Downloader<>(routeURL, usedYear, i, downloadfileType, routeFilename);
-            ResourceBuilder<String, Route> rbsr = new ResourceBuilder<>("", new Route(), true, true, basePath);
+            ResourceBuilder<String, Route> rbsr = new RouteResourceBuilder<>(true, basePath);
             routePumps.get(i - startMonth).use(new StringExtractor<>(downloadfileType, routeFilename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsr)
@@ -164,8 +160,6 @@ public class CrawlerController {
             LOG.info("Sink " + (i + 1) + " of " + routeSinks.size() + " terminated");
         }
 
-
-
         //FlightPipe:
         ArrayList<Pump<String>> flightPumps = new ArrayList();
         ArrayList<Sink<List<Route>>> flightSinks = new ArrayList();
@@ -180,7 +174,7 @@ public class CrawlerController {
             String filename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
             new Downloader<>(flightURL, usedYear, i, downloadfileType, filename);
-            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true, false, basePath);
+            ResourceBuilder<String, Route> rbsf = new FlightResourceBuilder<>(true, basePath);
             flightPumps.get(i - startMonth).use(new StringExtractor<>(downloadfileType, filename, ""))
                     .connect(new Pipe<>())
                     .connect(rbsf)
