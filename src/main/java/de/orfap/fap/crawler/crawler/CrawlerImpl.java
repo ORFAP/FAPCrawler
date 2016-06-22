@@ -28,15 +28,12 @@ import java.util.List;
 @Service
 public class CrawlerImpl implements Crawler {
     private final Logger LOG = LoggerFactory.getLogger(CrawlerImpl.class);
-
     private final String airlineURL = "http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID";
     private final String marketURL = "http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID";
     private final String routeURL = "http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0";
     private final String flightURL = "http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0";
-
     @Value("${fap.backend.basePath}")
     private String basePath;
-
     private final HashMap<String, Market> markets = new HashMap<>();
     private final HashMap<String, Market> usedMarkets = new HashMap<>();
     private final HashMap<String, Airline> airlines = new HashMap<>();
@@ -53,57 +50,46 @@ public class CrawlerImpl implements Crawler {
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     private RouteClient routeClient;
-    @Value("${fap.backend.basePath}")
-    private String basepath;
-
     @Autowired
     Sender<List<Route>> flightSender;
 
     @Override
     public Thread getAirlines() throws Exception {
-
         //AirlinePipe:
-        String airlineFilename="airlines.csv";
-        new Downloader<>(airlineURL, 0,0,"csv",airlineFilename);
-        AirlineResourceBuilder rbsa = new AirlineResourceBuilder();
-        Pump<String> airlinePump=new Pump<>();
-        airlinePump.use(new StringExtractor<>("csv",airlineFilename, ""))
-            .connect(new Pipe<>())
-            .connect(rbsa)
-            .connect(new Pipe<>())
-            .connect(new HashMapAdder<>(airlines));
+        String airlineFilename = "airlines.csv";
+        new Downloader<>(airlineURL, 0, 0, "csv", airlineFilename);
+        AirlineBuilder rbsa = new AirlineBuilder(false, basePath);
+        Pump<String> airlinePump = new Pump<>();
+        airlinePump.use(new CsvFileStringExtractor(airlineFilename))
+                .connect(new Pipe<>())
+                .connect(rbsa)
+                .connect(new Pipe<>())
+                .connect(new HashMapAdder<>(airlines));
         airlinePump.interrupt();
-
         return airlinePump;
-
     }
 
     @Override
     public Thread getMarkets() throws Exception {
-
         //MarketPipe:
-        String marketFilename="markets.csv";
-        new Downloader<>(marketURL, 0,0,"csv",marketFilename);
-        MarketResourceBuilder rbsm = new MarketResourceBuilder();
-        Pump<String> marketPump=new Pump<>();
-        marketPump.use(new StringExtractor<>("csv",marketFilename, ""))
-            .connect(new Pipe<>())
-            .connect(rbsm)
-            .connect(new Pipe<>())
-            .connect(new HashMapAdder<>(markets));
+        String marketFilename = "markets.csv";
+        new Downloader<>(marketURL, 0, 0, "csv", marketFilename);
+        MarketBuilder rbsm = new MarketBuilder(false, basePath);
+        Pump<String> marketPump = new Pump<>();
+        marketPump.use(new CsvFileStringExtractor(marketFilename))
+                .connect(new Pipe<>())
+                .connect(rbsm)
+                .connect(new Pipe<>())
+                .connect(new HashMapAdder<>(markets));
         marketPump.interrupt();
-
         return marketPump;
-
     }
 
     @Override
     public List<Thread> getRoutes(int usedYear, int startMonth, int endMonth) throws Exception {
-
         //RoutePipe:
         ArrayList<Pump<String>> routePumps = new ArrayList<>();
         ArrayList<Sink<List<Route>>> routeSinks = new ArrayList<>();
-
         for (int i = startMonth; i <= endMonth; i++) {
             if (routeClient.isRouteInMonthOfYear(usedYear + "-" + i)) {
                 continue;
@@ -114,16 +100,16 @@ public class CrawlerImpl implements Crawler {
             String routeFilename = "routes-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
             new Downloader<>(routeURL, usedYear, i, downloadfileType, routeFilename);
-            RouteResourceBuilder rbsr = new RouteResourceBuilder(true, basePath);
-            routePumps.get(i - startMonth).use(new StringExtractor<>(downloadfileType, routeFilename, ""))
-                .connect(new Pipe<>())
-                .connect(rbsr)
-                .connect(new Pipe<>())
-                .connect(new AirlineMarketSender<>(airlines, usedAirlines, markets, usedMarkets, airlineClient, marketClient))
-                .connect(new SynchronizedQueue<>())
-                .connect(new Collector<>())
-                .connect(new Pipe<>())
-                .connect(routeSinks.get(i - startMonth).use(flightSender));
+            RouteBuilder rbsr = new RouteBuilder(true, basePath);
+            routePumps.get(i - startMonth).use(new ZipFileStringExtractor(routeFilename))
+                    .connect(new Pipe<>())
+                    .connect(rbsr)
+                    .connect(new Pipe<>())
+                    .connect(new AirlineMarketSender<>(airlines, usedAirlines, markets, usedMarkets, airlineClient, marketClient))
+                    .connect(new SynchronizedQueue<>())
+                    .connect(new Collector<>())
+                    .connect(new Pipe<>())
+                    .connect(routeSinks.get(i - startMonth).use(flightSender));
             routePumps.get(i - startMonth).interrupt();
             routeSinks.get(i - startMonth).interrupt();
             LOG.info("Started RouteCrawlThread#" + i);
@@ -132,14 +118,11 @@ public class CrawlerImpl implements Crawler {
                 routePumps.get(i - startMonth).join();
             }
         }
-
         return (List) routeSinks;
-
     }
 
     @Override
     public List<Thread> getFlights(int usedYear, int startMonth, int endMonth) throws Exception {
-
         //FlightPipe:
         ArrayList<Pump<String>> flightPumps = new ArrayList<>();
         ArrayList<Sink<List<Route>>> flightSinks = new ArrayList<>();
@@ -149,20 +132,19 @@ public class CrawlerImpl implements Crawler {
             }
             flightPumps.add(new Pump<>());
             flightSinks.add(new Sink<>());
-
-            String filename = "flights-" + usedYear + "-" + i + ".zip";
+            String flightFilename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
-            new Downloader<>(flightURL, usedYear, i, downloadfileType, filename);
-            FlightResourceBuilder rbsf = new FlightResourceBuilder(true, basePath);
-            flightPumps.get(i - startMonth).use(new StringExtractor<>(downloadfileType, filename, ""))
-                .connect(new Pipe<>())
-                .connect(rbsf)
-                .connect(new Pipe<>())
-                .connect(new AirlineMarketSender<>(airlines, usedAirlines, markets, usedMarkets, airlineClient, marketClient))
-                .connect(new SynchronizedQueue<>())
-                .connect(new Collector<>())
-                .connect(new Pipe<>())
-                .connect(flightSinks.get(i - startMonth).use(flightSender));
+            new Downloader<>(flightURL, usedYear, i, downloadfileType, flightFilename);
+            FlightBuilder rbsf = new FlightBuilder(true, basePath);
+            flightPumps.get(i - startMonth).use(new ZipFileStringExtractor(flightFilename))
+                    .connect(new Pipe<>())
+                    .connect(rbsf)
+                    .connect(new Pipe<>())
+                    .connect(new AirlineMarketSender<>(airlines, usedAirlines, markets, usedMarkets, airlineClient, marketClient))
+                    .connect(new SynchronizedQueue<>())
+                    .connect(new Collector<>())
+                    .connect(new Pipe<>())
+                    .connect(flightSinks.get(i - startMonth).use(flightSender));
             flightPumps.get(i - startMonth).interrupt();
             flightSinks.get(i - startMonth).interrupt();
             LOG.info("Started FlightCrawlThread#" + i);
@@ -171,7 +153,6 @@ public class CrawlerImpl implements Crawler {
                 flightPumps.get(i - startMonth).join();
             }
         }
-
         return (List) flightSinks;
     }
 

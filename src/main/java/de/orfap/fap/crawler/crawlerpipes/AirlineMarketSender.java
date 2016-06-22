@@ -10,7 +10,7 @@ import edu.hm.obreitwi.arch.lab08.BaseFilter;
 import java.util.HashMap;
 
 /**
- * Created by ifw13017 on 20.06.2016.
+ * Created by o4 on 20.06.2016.
  */
 public class AirlineMarketSender<T> extends BaseFilter<T,T> {
     private final HashMap<String, Airline> airlines;
