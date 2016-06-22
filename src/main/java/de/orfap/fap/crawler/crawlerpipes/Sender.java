@@ -9,29 +9,25 @@ import de.orfap.fap.crawler.feign.RouteClient;
 import edu.hm.obreitwi.arch.lab08.BaseConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
  * Created by o4 on 03.06.16.
  */
-@Service
 public class Sender<T> extends BaseConsumer<T> {
     private int numberSendOperations;
     //Warnings suppressed because of: No beans needed
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Autowired
-    private AirlineClient airlineClient;
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Autowired
-    private MarketClient marketClient;
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Autowired
-    private RouteClient routeClient;
+    private final AirlineClient airlineClient;
+    private final MarketClient marketClient;
+    private final RouteClient routeClient;
     private final Logger LOG = LoggerFactory.getLogger(Sender.class);
+
+    public Sender(AirlineClient airlineClient, MarketClient marketClient, RouteClient routeClient) {
+        this.airlineClient = airlineClient;
+        this.marketClient = marketClient;
+        this.routeClient = routeClient;
+    }
 
     @Override
     public void accept(T data) {

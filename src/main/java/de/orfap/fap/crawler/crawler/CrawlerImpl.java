@@ -1,16 +1,6 @@
 package de.orfap.fap.crawler.crawler;
 
-import de.orfap.fap.crawler.crawlerpipes.AirlineBuilder;
-import de.orfap.fap.crawler.crawlerpipes.AirlineMarketSender;
-import de.orfap.fap.crawler.crawlerpipes.Collector;
-import de.orfap.fap.crawler.crawlerpipes.CsvFileStringExtractor;
-import de.orfap.fap.crawler.crawlerpipes.Downloader;
-import de.orfap.fap.crawler.crawlerpipes.FlightBuilder;
-import de.orfap.fap.crawler.crawlerpipes.HashMapAdder;
-import de.orfap.fap.crawler.crawlerpipes.MarketBuilder;
-import de.orfap.fap.crawler.crawlerpipes.RouteBuilder;
-import de.orfap.fap.crawler.crawlerpipes.Sender;
-import de.orfap.fap.crawler.crawlerpipes.ZipFileStringExtractor;
+import de.orfap.fap.crawler.crawlerpipes.*;
 import de.orfap.fap.crawler.domain.Airline;
 import de.orfap.fap.crawler.domain.Market;
 import de.orfap.fap.crawler.domain.Route;
@@ -23,11 +13,7 @@ import edu.hm.obreitwi.arch.lab08.Sink;
 import edu.hm.obreitwi.arch.lab08.SynchronizedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -35,33 +21,30 @@ import java.util.List;
  * Created by Arne on 13.04.2016.
  */
 @SuppressWarnings({"ALL", "DefaultFileTemplate"})
-@Service
 public class CrawlerImpl implements Crawler {
     private final Logger LOG = LoggerFactory.getLogger(CrawlerImpl.class);
-    private final String airlineURL = "http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID";
-    private final String marketURL = "http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID";
-    private final String routeURL = "http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0";
-    private final String flightURL = "http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0";
-    @Value("${fap.backend.basePath}")
-    private String basePath;
+    private final static String airlineURL = "http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID";
+    private final static String marketURL = "http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID";
+    private final static String routeURL = "http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0";
+    private final static String flightURL = "http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0";
+
+
     private final HashMap<String, Market> markets = new HashMap<>();
     private final HashMap<String, Market> usedMarkets = new HashMap<>();
     private final HashMap<String, Airline> airlines = new HashMap<>();
     private final HashMap<String, Airline> usedAirlines = new HashMap<>();
-    private final ArrayList<Route> routes = new ArrayList<>();
-    private final ArrayList<Route> flights = new ArrayList<>();
-    //Warnings suppressed because of: No beans needed
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Autowired
-    private AirlineClient airlineClient;
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Autowired
-    private MarketClient marketClient;
-    @SuppressWarnings("SpringJavaAutowiringInspection")
-    @Autowired
-    private RouteClient routeClient;
-    @Autowired
-    Sender<List<Route>> flightSender;
+
+    private final String basePath;
+    private final AirlineClient airlineClient;
+    private final MarketClient marketClient;
+    private final RouteClient routeClient;
+
+    public CrawlerImpl(String basePath, AirlineClient airlineClient, MarketClient marketClient, RouteClient routeClient) {
+        this.basePath = basePath;
+        this.airlineClient = airlineClient;
+        this.marketClient = marketClient;
+        this.routeClient = routeClient;
+    }
 
     @Override
     public Thread getAirlines() throws Exception {
@@ -109,7 +92,7 @@ public class CrawlerImpl implements Crawler {
                 .connect(new SynchronizedQueue<>())
                 .connect(new Collector<>())
                 .connect(new Pipe<>())
-                .connect(sink.use(flightSender));
+                .connect(sink.use(new Sender<>(airlineClient,marketClient,routeClient)));
         pump.interrupt();
         sink.interrupt();
         LOG.info("Started RouteCrawlThread for month: " + month);
@@ -132,7 +115,7 @@ public class CrawlerImpl implements Crawler {
                 .connect(new SynchronizedQueue<>())
                 .connect(new Collector<>())
                 .connect(new Pipe<>())
-                .connect(sink.use(flightSender));
+                .connect(sink.use(new Sender<>(airlineClient,marketClient,routeClient)));
         pump.interrupt();
         sink.interrupt();
         LOG.info("Started FlightCrawlThread for month: " + month);

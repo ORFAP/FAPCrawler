@@ -1,6 +1,10 @@
 package de.orfap.fap.crawler.controller;
 
+import de.orfap.fap.crawler.crawler.Crawler;
 import de.orfap.fap.crawler.crawler.CrawlerImpl;
+import de.orfap.fap.crawler.feign.AirlineClient;
+import de.orfap.fap.crawler.feign.MarketClient;
+import de.orfap.fap.crawler.feign.RouteClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,9 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by Arne on 15.05.2016.
@@ -20,9 +22,20 @@ import java.util.List;
 @SuppressWarnings("DefaultFileTemplate")
 @RestController
 public class CrawlerController {
-    @Autowired
-    CrawlerImpl crawler;
+
     private final Logger LOG = LoggerFactory.getLogger(CrawlerController.class);
+
+    //Warnings suppressed because of: No beans needed
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private AirlineClient airlineClient;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private MarketClient marketClient;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private RouteClient routeClient;
+
     @Value("${fap.backend.basePath}")
     private String basePath;
 
@@ -59,15 +72,17 @@ public class CrawlerController {
             throw new IllegalArgumentException("year/month must be a numerical value");
         }
 
+        Crawler crawler = new CrawlerImpl(basePath, airlineClient, marketClient, routeClient);
+
         Thread airlineCrawlers = crawler.getAirlines();
         Thread marketCrawlers = crawler.getMarkets();
         airlineCrawlers.join();
         marketCrawlers.join();
 
-        ArrayList<Thread> routeCrawlers = new ArrayList();
-        ArrayList<Thread> flightCrawlers = new ArrayList();
+        ArrayList<Thread> routeCrawlers = new ArrayList<>();
+        ArrayList<Thread> flightCrawlers = new ArrayList<>();
         for (int i = startMonth; i <= endMonth; i++) {
-            if (crawler.getRouteClient().isRouteInMonthOfYear(usedYear + "-" + i)) {
+            if (routeClient.isRouteInMonthOfYear(usedYear + "-" + i)) {
                 continue;
             }
             Thread routeCrawler = crawler.getRoutes(usedYear, i);
@@ -79,21 +94,21 @@ public class CrawlerController {
                 flightCrawler.join();
             }
         }
-        routeCrawlers.forEach(crawler -> {
+        routeCrawlers.forEach(crawlerThread -> {
             try {
-                crawler.join();
+              crawlerThread.join();
             } catch (InterruptedException e) {
-                throw new IllegalArgumentException("Not gonna happen");
+                throw new AssertionError("Not gonna happen");
             }
-            LOG.info("Routes Crawler " + routeCrawlers.indexOf(crawler) + " of " + routeCrawlers.size() + " terminated");
+            LOG.info("Routes Crawler " + routeCrawlers.indexOf(crawlerThread) + " of " + routeCrawlers.size() + " terminated");
         });
-        flightCrawlers.forEach(crawler -> {
+        flightCrawlers.forEach(crawlerThread -> {
             try {
-                crawler.join();
+              crawlerThread.join();
             } catch (InterruptedException e) {
-                throw new IllegalArgumentException("Not gonna happen");
+                throw new AssertionError("Not gonna happen");
             }
-            LOG.info("Flights Crawler " + flightCrawlers.indexOf(crawler) + " of " + flightCrawlers.size() + " terminated");
+            LOG.info("Flights Crawler " + flightCrawlers.indexOf(crawlerThread) + " of " + flightCrawlers.size() + " terminated");
         });
         LOG.info("Crawling of " + year + ", months " + startMonth + "-" + endMonth + " done");
     }
