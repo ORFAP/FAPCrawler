@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.DataOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -13,29 +12,17 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.Month;
-import java.time.format.TextStyle;
-import java.util.Locale;
-import java.util.zip.ZipFile;
 
 /**
  * Created by o4 on 03.06.16.
  */
 public class Downloader<T> extends BaseProducer<T> {
     private final Logger LOG = LoggerFactory.getLogger(Downloader.class);
-    private String downloadfileType;
-    private String url;
-    private int year;
-    private int month;
-    private String filename;
-    private Object outputFile;
+    private T outputFile;
 
     public Downloader(final String url, final int year, final int month, final String downloadfileType, final String filename) {
-        this.url = url;
-        this.year = year;
-        this.month = month;
-        this.downloadfileType = downloadfileType;
-        this.filename = filename;
+
+
         this.outputFile = null;
         try {
             Files.deleteIfExists(Paths.get(filename));
@@ -64,7 +51,7 @@ public class Downloader<T> extends BaseProducer<T> {
 
     @Override
     public T deliver() {
-        return (T) outputFile;
+        return outputFile;
     }
 
     /**

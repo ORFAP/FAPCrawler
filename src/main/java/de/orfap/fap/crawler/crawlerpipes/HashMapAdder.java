@@ -10,9 +10,9 @@ import java.util.HashMap;
  * Created by o4 on 20.06.2016.
  */
 public class HashMapAdder<T> extends BaseConsumer<T> {
-    private HashMap hashMap;
+    private HashMap<String, T> hashMap;
 
-    public HashMapAdder(final HashMap hashMap){
+    public HashMapAdder(final HashMap<String, T> hashMap){
         this.hashMap=hashMap;
     }
     @Override

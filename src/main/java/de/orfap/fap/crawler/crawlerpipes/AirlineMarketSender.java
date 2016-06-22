@@ -12,15 +12,15 @@ import java.util.HashMap;
 /**
  * Created by ifw13017 on 20.06.2016.
  */
-public class AirlineMarketSender<T> extends BaseFilter<T, T> {
-    private HashMap airlines;
-    private HashMap usedAirlines;
-    private HashMap markets;
-    private HashMap usedMarkets;
+public class AirlineMarketSender<T> extends BaseFilter<T,T> {
+    private final HashMap<String, Airline> airlines;
+    private final HashMap<String, Airline> usedAirlines;
+    private final HashMap<String, Market> markets;
+    private final HashMap<String, Market> usedMarkets;
     private AirlineClient airlineClient;
     private MarketClient marketClient;
 
-    public AirlineMarketSender(final HashMap airlines, final HashMap usedAirlines, final HashMap markets, final HashMap usedMarkets, final AirlineClient airlineClient, final MarketClient marketClient) {
+    public AirlineMarketSender(final HashMap<String, Airline> airlines, final HashMap<String, Airline> usedAirlines, final HashMap<String, Market> markets, final HashMap<String, Market> usedMarkets, final AirlineClient airlineClient, final MarketClient marketClient) {
         this.airlines = airlines;
         this.usedAirlines = usedAirlines;
         this.markets = markets;

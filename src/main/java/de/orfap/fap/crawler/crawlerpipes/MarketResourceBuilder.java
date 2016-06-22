@@ -1,28 +1,43 @@
 package de.orfap.fap.crawler.crawlerpipes;
 
 import de.orfap.fap.crawler.domain.Market;
+import edu.hm.obreitwi.arch.lab08.BaseFilter;
 
 /**
- * Created by o4 on 22.06.2016.
+ * Created by o4 on 03.06.16.
  */
-public class MarketResourceBuilder<T, U> extends ResourceBuilder<T, U> {
+public class MarketResourceBuilder extends BaseFilter<String, Market> {
 
-    public MarketResourceBuilder(final boolean listAble, final String basePath) {
-        super(listAble, basePath);
+    @Override
+    public Market transform(String data) {
+            String[] columns;
+
+            final Market output;
+            columns = data.split("\",\"");
+            if (columns[0].matches("\"[0-9]{1,}") && columns[1].matches(".*, [A-Z]{2}.*\"")) {
+                output = new Market(columns[1].trim().replaceAll("\"", ""), columns[0].replaceAll("\"", ""));
+            } else {
+                output = new Market("", "");
+            }
+            //noinspection unchecked
+            return output;
+
+
     }
 
     @Override
-    public U transform(T data) {
-        String workingdata = (String) data;
-        String[] columns;
-        final Market output;
-        columns = workingdata.split("\",\"");
-        if (columns[0].matches("\"[0-9]{1,}") && columns[1].matches(".*, [A-Z]{2}.*\"")) {
-            output = new Market(columns[1].trim().replaceAll("\"", ""), columns[0].replaceAll("\"", ""));
+    public Market deliver() {
+        return null;
+    }
+
+    @Override
+    public void accept(String datum) {
+        Market result;
+        if (datum == null) {
+            result = null;
         } else {
-            output = new Market("", "");
+            result = transform(datum);
         }
-        //noinspection unchecked
-        return (U) output;
+        getOutgoing().push(result);
     }
 }
