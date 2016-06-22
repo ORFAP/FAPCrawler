@@ -67,7 +67,7 @@ public class ResourceBuilder<T, U> extends BaseFilter<T, U> {
                     output.setCancelled(0);
                     output.setDelays(0);
                     output.setPassengerCount(Double.parseDouble(columns[4]));
-                    output.setFlightCount(Double.parseDouble(columns[3]));
+                    output.setFlightCount(0);
                     if(listAble) {
                         output.setAirline(columns[5]);
                         output.setSource(columns[6]);
