@@ -132,10 +132,6 @@ public class CrawlerImpl implements Crawler {
                 routePumps.get(i - startMonth).join();
             }
         }
-        for (int i = 0; i < routeSinks.size(); i++) {
-            routeSinks.get(i).join();
-            LOG.info("Sink " + (i + 1) + " of " + routeSinks.size() + " terminated");
-        }
 
         return (List) routeSinks;
 
