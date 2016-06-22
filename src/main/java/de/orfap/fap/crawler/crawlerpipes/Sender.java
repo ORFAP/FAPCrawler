@@ -31,8 +31,6 @@ public class Sender<T> extends BaseConsumer<T> {
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     private RouteClient routeClient;
-    @Value("${fap.backend.basePath}")
-    private String basepath;
     private final Logger LOG = LoggerFactory.getLogger(Sender.class);
 
     @Override
