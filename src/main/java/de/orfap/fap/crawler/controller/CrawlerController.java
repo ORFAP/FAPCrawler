@@ -75,7 +75,7 @@ public class CrawlerController {
                 } catch (InterruptedException e) {
                     throw new IllegalArgumentException("Not gonna happen");
                 }
-                LOG.info("Routes Crawler " + routeCrawlers.indexOf(crawler) + " of " + flightCrawlers.size() + " terminated");
+                LOG.info("Routes Crawler " + routeCrawlers.indexOf(crawler) + " of " + routeCrawlers.size() + " terminated");
         });
         flightCrawlers.forEach(crawler -> {
                 try {
