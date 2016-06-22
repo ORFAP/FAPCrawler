@@ -1,11 +1,6 @@
 package de.orfap.fap.crawler.crawlerpipes;
 
-import de.orfap.fap.crawler.domain.Airline;
-import de.orfap.fap.crawler.domain.Market;
-import de.orfap.fap.crawler.domain.Route;
 import edu.hm.obreitwi.arch.lab08.BaseFilter;
-
-import java.util.GregorianCalendar;
 
 /**
  * Created by o4 on 03.06.16.

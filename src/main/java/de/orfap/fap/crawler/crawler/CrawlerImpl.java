@@ -1,6 +1,16 @@
 package de.orfap.fap.crawler.crawler;
 
-import de.orfap.fap.crawler.crawlerpipes.*;
+import de.orfap.fap.crawler.crawlerpipes.AirlineBuilder;
+import de.orfap.fap.crawler.crawlerpipes.AirlineMarketSender;
+import de.orfap.fap.crawler.crawlerpipes.Collector;
+import de.orfap.fap.crawler.crawlerpipes.CsvFileStringExtractor;
+import de.orfap.fap.crawler.crawlerpipes.Downloader;
+import de.orfap.fap.crawler.crawlerpipes.FlightBuilder;
+import de.orfap.fap.crawler.crawlerpipes.HashMapAdder;
+import de.orfap.fap.crawler.crawlerpipes.MarketBuilder;
+import de.orfap.fap.crawler.crawlerpipes.RouteBuilder;
+import de.orfap.fap.crawler.crawlerpipes.Sender;
+import de.orfap.fap.crawler.crawlerpipes.ZipFileStringExtractor;
 import de.orfap.fap.crawler.domain.Airline;
 import de.orfap.fap.crawler.domain.Market;
 import de.orfap.fap.crawler.domain.Route;
