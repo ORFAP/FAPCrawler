@@ -68,11 +68,10 @@ public class CrawlerImpl implements Crawler {
         //AirlinePipe:
         String airlineFilename = "airlines.csv";
         new Downloader<>(airlineURL, 0, 0, "csv", airlineFilename);
-        AirlineBuilder rbsa = new AirlineBuilder(false, basePath);
         Pump<String> airlinePump = new Pump<>();
         airlinePump.use(new CsvFileStringExtractor(airlineFilename))
                 .connect(new Pipe<>())
-                .connect(rbsa)
+                .connect(new AirlineBuilder(false, basePath))
                 .connect(new Pipe<>())
                 .connect(new HashMapAdder<>(airlines));
         airlinePump.interrupt();
@@ -84,11 +83,10 @@ public class CrawlerImpl implements Crawler {
         //MarketPipe:
         String marketFilename = "markets.csv";
         new Downloader<>(marketURL, 0, 0, "csv", marketFilename);
-        MarketBuilder rbsm = new MarketBuilder(false, basePath);
         Pump<String> marketPump = new Pump<>();
         marketPump.use(new CsvFileStringExtractor(marketFilename))
                 .connect(new Pipe<>())
-                .connect(rbsm)
+                .connect(new MarketBuilder(false, basePath))
                 .connect(new Pipe<>())
                 .connect(new HashMapAdder<>(markets));
         marketPump.interrupt();
@@ -96,70 +94,52 @@ public class CrawlerImpl implements Crawler {
     }
 
     @Override
-    public List<Thread> getRoutes(int usedYear, int startMonth, int endMonth) throws Exception {
+    public Thread getRoutes(final int usedYear, final int month) throws Exception {
         //RoutePipe:
-        ArrayList<Sink<List<Route>>> routeSinks = new ArrayList<>();
-        for (int i = startMonth; i <= endMonth; i++) {
-            if (routeClient.isRouteInMonthOfYear(usedYear + "-" + i)) {
-                continue;
-            }
-            Pump<String> pump = new Pump<>();
-            Sink<List<Route>> sink = new Sink<>();
-            routeSinks.add(sink);
-
-            String routeFilename = "routes-" + usedYear + "-" + i + ".zip";
-            String downloadfileType = "zip";
-            new Downloader<>(routeURL, usedYear, i, downloadfileType, routeFilename);
-            RouteBuilder rbsr = new RouteBuilder(true, basePath);
-            pump.use(new ZipFileStringExtractor(routeFilename))
-                    .connect(new Pipe<>())
-                    .connect(rbsr)
-                    .connect(new Pipe<>())
-                    .connect(new AirlineMarketSender<>(airlines, usedAirlines, markets, usedMarkets, airlineClient, marketClient))
-                    .connect(new SynchronizedQueue<>())
-                    .connect(new Collector<>())
-                    .connect(new Pipe<>())
-                    .connect(sink.use(flightSender));
-            pump.interrupt();
-            sink.interrupt();
-            LOG.info("Started RouteCrawlThread for month: " + i);
-
-        }
-        return (List) routeSinks;
+        Pump<String> pump = new Pump<>();
+        Sink<List<Route>> sink = new Sink<>();
+        String routeFilename = "routes-" + usedYear + "-" + month + ".zip";
+        String downloadfileType = "zip";
+        new Downloader<>(routeURL, usedYear, month, downloadfileType, routeFilename);
+        pump.use(new ZipFileStringExtractor(routeFilename))
+                .connect(new Pipe<>())
+                .connect(new RouteBuilder(true, basePath))
+                .connect(new Pipe<>())
+                .connect(new AirlineMarketSender<>(airlines, usedAirlines, markets, usedMarkets, airlineClient, marketClient))
+                .connect(new SynchronizedQueue<>())
+                .connect(new Collector<>())
+                .connect(new Pipe<>())
+                .connect(sink.use(flightSender));
+        pump.interrupt();
+        sink.interrupt();
+        LOG.info("Started RouteCrawlThread for month: " + month);
+        return sink;
     }
 
     @Override
-    public List<Thread> getFlights(int usedYear, int startMonth, int endMonth) throws Exception {
+    public Thread getFlights(final int usedYear, final int month) throws Exception {
         //FlightPipe:
-
-        ArrayList<Sink<List<Route>>> flightSinks = new ArrayList<>();
-        for (int i = startMonth; i <= endMonth; i++) {
-            if (routeClient.isRouteInMonthOfYear(usedYear + "-" + i)) {
-                continue;
-            }
-            Pump<String> pump = new Pump<>();
-            Sink<List<Route>> sink = new Sink<>();
-            flightSinks.add(sink);
-
-            String flightFilename = "flights-" + usedYear + "-" + i + ".zip";
-            String downloadfileType = "zip";
-            new Downloader<>(flightURL, usedYear, i, downloadfileType, flightFilename);
-            FlightBuilder rbsf = new FlightBuilder(true, basePath);
-            pump.use(new ZipFileStringExtractor(flightFilename))
-                    .connect(new Pipe<>())
-                    .connect(rbsf)
-                    .connect(new Pipe<>())
-                    .connect(new AirlineMarketSender<>(airlines, usedAirlines, markets, usedMarkets, airlineClient, marketClient))
-                    .connect(new SynchronizedQueue<>())
-                    .connect(new Collector<>())
-                    .connect(new Pipe<>())
-                    .connect(sink.use(flightSender));
-            pump.interrupt();
-            sink.interrupt();
-            LOG.info("Started FlightCrawlThread for month: " + i);
-
-        }
-        return (List) flightSinks;
+        Pump<String> pump = new Pump<>();
+        Sink<List<Route>> sink = new Sink<>();
+        String flightFilename = "flights-" + usedYear + "-" + month + ".zip";
+        String downloadfileType = "zip";
+        new Downloader<>(flightURL, usedYear, month, downloadfileType, flightFilename);
+        pump.use(new ZipFileStringExtractor(flightFilename))
+                .connect(new Pipe<>())
+                .connect(new FlightBuilder(true, basePath))
+                .connect(new Pipe<>())
+                .connect(new AirlineMarketSender<>(airlines, usedAirlines, markets, usedMarkets, airlineClient, marketClient))
+                .connect(new SynchronizedQueue<>())
+                .connect(new Collector<>())
+                .connect(new Pipe<>())
+                .connect(sink.use(flightSender));
+        pump.interrupt();
+        sink.interrupt();
+        LOG.info("Started FlightCrawlThread for month: " + month);
+        return sink;
     }
 
+    public RouteClient getRouteClient() {
+        return routeClient;
+    }
 }

@@ -20,37 +20,18 @@ public class StringExtractor<T, U> extends BaseFilter<T, U> {
     }
 
     @Override
-    public U deliver() {
-        String output = null;
-        try {
-            output = br.readLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (output != null) {
-            try {
-                if (!output.matches("\"[0-9]{1,1}.*")) {
-                    output = br.readLine();
-                }
-                //noinspection unchecked
-                return (U) output;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        try {
-            br.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    @Override
     public void accept(T datum) {
     }
 
     public void setBr(BufferedReader br) {
         this.br = br;
+    }
+
+    public BufferedReader getBr() {
+        return br;
+    }
+
+    public Logger getLOG() {
+        return LOG;
     }
 }

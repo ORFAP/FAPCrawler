@@ -1,6 +1,6 @@
 package de.orfap.fap.crawler.controller;
 
-import de.orfap.fap.crawler.crawler.Crawler;
+import de.orfap.fap.crawler.crawler.CrawlerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,9 +20,8 @@ import java.util.List;
 @SuppressWarnings("DefaultFileTemplate")
 @RestController
 public class CrawlerController {
-
     @Autowired
-    Crawler crawler;
+    CrawlerImpl crawler;
     private final Logger LOG = LoggerFactory.getLogger(CrawlerController.class);
     @Value("${fap.backend.basePath}")
     private String basePath;
@@ -58,33 +59,42 @@ public class CrawlerController {
             throw new IllegalArgumentException("year/month must be a numerical value");
         }
 
-
         Thread airlineCrawlers = crawler.getAirlines();
         Thread marketCrawlers = crawler.getMarkets();
         airlineCrawlers.join();
         marketCrawlers.join();
 
-
-        List<Thread> routeCrawlers = crawler.getRoutes(usedYear,startMonth,endMonth);
-        List<Thread> flightCrawlers = crawler.getFlights(usedYear,startMonth,endMonth);
-
-
+        ArrayList<Thread> routeCrawlers = new ArrayList();
+        ArrayList<Thread> flightCrawlers = new ArrayList();
+        for (int i = startMonth; i <= endMonth; i++) {
+            if (crawler.getRouteClient().isRouteInMonthOfYear(usedYear + "-" + i)) {
+                continue;
+            }
+            Thread routeCrawler = crawler.getRoutes(usedYear, i);
+            Thread flightCrawler = crawler.getFlights(usedYear, i);
+            routeCrawlers.add(routeCrawler);
+            flightCrawlers.add(flightCrawler);
+            if (i % 4 == 0) {
+                routeCrawler.join();
+                flightCrawler.join();
+            }
+        }
         routeCrawlers.forEach(crawler -> {
-                try {
-                    crawler.join();
-                } catch (InterruptedException e) {
-                    throw new IllegalArgumentException("Not gonna happen");
-                }
-                LOG.info("Routes Crawler " + routeCrawlers.indexOf(crawler) + " of " + routeCrawlers.size() + " terminated");
+            try {
+                crawler.join();
+            } catch (InterruptedException e) {
+                throw new IllegalArgumentException("Not gonna happen");
+            }
+            LOG.info("Routes Crawler " + routeCrawlers.indexOf(crawler) + " of " + routeCrawlers.size() + " terminated");
         });
         flightCrawlers.forEach(crawler -> {
-                try {
-                    crawler.join();
-                } catch (InterruptedException e) {
-                    throw new IllegalArgumentException("Not gonna happen");
-                }
-                LOG.info("Flights Crawler " + flightCrawlers.indexOf(crawler) + " of " + flightCrawlers.size() + " terminated");
-            });
+            try {
+                crawler.join();
+            } catch (InterruptedException e) {
+                throw new IllegalArgumentException("Not gonna happen");
+            }
+            LOG.info("Flights Crawler " + flightCrawlers.indexOf(crawler) + " of " + flightCrawlers.size() + " terminated");
+        });
         LOG.info("Crawling of " + year + ", months " + startMonth + "-" + endMonth + " done");
     }
 }

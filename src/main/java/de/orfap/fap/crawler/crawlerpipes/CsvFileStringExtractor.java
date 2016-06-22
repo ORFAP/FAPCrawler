@@ -21,4 +21,35 @@ public class CsvFileStringExtractor extends StringExtractor<File, String> {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public String deliver() {
+        String output = null;
+        try {
+            output = getBr().readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (output != null) {
+            try {
+                while (!output.matches("\"[0-9]{1,1}.*") || output.contains(",,")) {
+                    getLOG().debug("Wrong formatted line in CsvFile: " + output);
+                    output = getBr().readLine();
+                    if(output==null){
+                        return output;
+                    }
+                }
+                //noinspection unchecked
+                return output;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            getBr().close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

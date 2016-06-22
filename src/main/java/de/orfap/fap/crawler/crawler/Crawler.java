@@ -24,20 +24,18 @@ public interface Crawler {
     /**
      * Crawlsings the routes, as in crawling & parsing.
      *
-     * @param usedYear      the year to be crawled
-     * @param startMonth month to crawl
-     * @param endMonth
+     * @param usedYear the year to be crawled
+     * @param month    month to crawl
      * @throws Exception
      */
-    List<Thread> getRoutes(int usedYear, int startMonth, int endMonth) throws Exception;
+    Thread getRoutes(final int usedYear, final int month) throws Exception;
 
     /**
      * Crawlsings the flights, as in crawling & parsing.
      *
-     * @param usedYear      the year to be crawled
-     * @param startMonth month to crawl
-     * @param endMonth
+     * @param usedYear the year to be crawled
+     * @param month    month to crawl
      * @throws Exception
      */
-    List<Thread> getFlights(int usedYear, int startMonth, int endMonth) throws Exception;
+    Thread getFlights(final int usedYear, final int month) throws Exception;
 }
