@@ -98,20 +98,20 @@ public class CrawlerImpl implements Crawler {
     @Override
     public List<Thread> getRoutes(int usedYear, int startMonth, int endMonth) throws Exception {
         //RoutePipe:
-        ArrayList<Pump<String>> routePumps = new ArrayList<>();
         ArrayList<Sink<List<Route>>> routeSinks = new ArrayList<>();
         for (int i = startMonth; i <= endMonth; i++) {
             if (routeClient.isRouteInMonthOfYear(usedYear + "-" + i)) {
                 continue;
             }
-            routePumps.add(new Pump<>());
-            routeSinks.add(new Sink<>());
+            Pump<String> pump = new Pump<>();
+            Sink<List<Route>> sink = new Sink<>();
+            routeSinks.add(sink);
 
             String routeFilename = "routes-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
             new Downloader<>(routeURL, usedYear, i, downloadfileType, routeFilename);
             RouteBuilder rbsr = new RouteBuilder(true, basePath);
-            routePumps.get(i - startMonth).use(new ZipFileStringExtractor(routeFilename))
+            pump.use(new ZipFileStringExtractor(routeFilename))
                     .connect(new Pipe<>())
                     .connect(rbsr)
                     .connect(new Pipe<>())
@@ -120,13 +120,10 @@ public class CrawlerImpl implements Crawler {
                     .connect(new Collector<>())
                     .connect(new Pipe<>())
                     .connect(routeSinks.get(i - startMonth).use(flightSender));
-            routePumps.get(i - startMonth).interrupt();
-            routeSinks.get(i - startMonth).interrupt();
+            pump.interrupt();
+            sink.interrupt();
             LOG.info("Started RouteCrawlThread#" + i);
-            if ((i - startMonth) % 4 == 0) {
-                LOG.info("Waiting for RouteCrawlThread#" + i);
-                routePumps.get(i - startMonth).join();
-            }
+
         }
         return (List) routeSinks;
     }
@@ -134,19 +131,21 @@ public class CrawlerImpl implements Crawler {
     @Override
     public List<Thread> getFlights(int usedYear, int startMonth, int endMonth) throws Exception {
         //FlightPipe:
-        ArrayList<Pump<String>> flightPumps = new ArrayList<>();
+
         ArrayList<Sink<List<Route>>> flightSinks = new ArrayList<>();
         for (int i = startMonth; i <= endMonth; i++) {
             if (routeClient.isRouteInMonthOfYear(usedYear + "-" + i)) {
                 continue;
             }
-            flightPumps.add(new Pump<>());
-            flightSinks.add(new Sink<>());
+            Pump<String> pump = new Pump<>();
+            Sink<List<Route>> sink = new Sink<>();
+            flightSinks.add(sink);
+
             String flightFilename = "flights-" + usedYear + "-" + i + ".zip";
             String downloadfileType = "zip";
             new Downloader<>(flightURL, usedYear, i, downloadfileType, flightFilename);
             FlightBuilder rbsf = new FlightBuilder(true, basePath);
-            flightPumps.get(i - startMonth).use(new ZipFileStringExtractor(flightFilename))
+            pump.use(new ZipFileStringExtractor(flightFilename))
                     .connect(new Pipe<>())
                     .connect(rbsf)
                     .connect(new Pipe<>())
@@ -155,13 +154,10 @@ public class CrawlerImpl implements Crawler {
                     .connect(new Collector<>())
                     .connect(new Pipe<>())
                     .connect(flightSinks.get(i - startMonth).use(flightSender));
-            flightPumps.get(i - startMonth).interrupt();
-            flightSinks.get(i - startMonth).interrupt();
+            pump.interrupt();
+            sink.interrupt();
             LOG.info("Started FlightCrawlThread#" + i);
-            if ((i - startMonth) % 4 == 0) {
-                LOG.info("Waiting for FlightCrawlThread#" + i);
-                flightPumps.get(i - startMonth).join();
-            }
+
         }
         return (List) flightSinks;
     }
