@@ -122,7 +122,7 @@ public class CrawlerImpl implements Crawler {
                     .connect(sink.use(flightSender));
             pump.interrupt();
             sink.interrupt();
-            LOG.info("Started RouteCrawlThread#" + i);
+            LOG.info("Started RouteCrawlThread for month: " + i);
 
         }
         return (List) routeSinks;
@@ -156,7 +156,7 @@ public class CrawlerImpl implements Crawler {
                     .connect(sink.use(flightSender));
             pump.interrupt();
             sink.interrupt();
-            LOG.info("Started FlightCrawlThread#" + i);
+            LOG.info("Started FlightCrawlThread for month: " + i);
 
         }
         return (List) flightSinks;
