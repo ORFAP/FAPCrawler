@@ -119,7 +119,7 @@ public class CrawlerImpl implements Crawler {
                     .connect(new SynchronizedQueue<>())
                     .connect(new Collector<>())
                     .connect(new Pipe<>())
-                    .connect(routeSinks.get(i - startMonth).use(flightSender));
+                    .connect(sink.use(flightSender));
             pump.interrupt();
             sink.interrupt();
             LOG.info("Started RouteCrawlThread#" + i);
@@ -153,7 +153,7 @@ public class CrawlerImpl implements Crawler {
                     .connect(new SynchronizedQueue<>())
                     .connect(new Collector<>())
                     .connect(new Pipe<>())
-                    .connect(flightSinks.get(i - startMonth).use(flightSender));
+                    .connect(sink.use(flightSender));
             pump.interrupt();
             sink.interrupt();
             LOG.info("Started FlightCrawlThread#" + i);
