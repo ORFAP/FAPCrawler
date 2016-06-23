@@ -2,8 +2,12 @@ package de.orfap.fap.crawler.controller;
 
 import de.orfap.fap.crawler.crawler.Crawler;
 import de.orfap.fap.crawler.crawler.CrawlerImpl;
+import de.orfap.fap.crawler.feign.AirlineClient;
+import de.orfap.fap.crawler.feign.MarketClient;
+import de.orfap.fap.crawler.feign.RouteClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,10 +22,20 @@ import java.util.ArrayList;
 @SuppressWarnings("DefaultFileTemplate")
 @RestController
 public class CrawlerController {
-    Crawler crawler = new CrawlerImpl();
+
     private final Logger LOG = LoggerFactory.getLogger(CrawlerController.class);
     @Value("${fap.backend.basePath}")
     private String basePath;
+
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private AirlineClient airlineClient;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private MarketClient marketClient;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private RouteClient routeClient;
 
     @RequestMapping(value = "/crawlIntoBackend", method = RequestMethod.GET)
     public void crawlIntoBackend(@Param("year") String year, @Param("month") String month) throws Exception {
@@ -55,6 +69,8 @@ public class CrawlerController {
         } catch (NumberFormatException nfe) {
             throw new IllegalArgumentException("year/month must be a numerical value");
         }
+
+        Crawler crawler = new CrawlerImpl(airlineClient, marketClient, routeClient, basePath);
 
         Thread airlineCrawlers = crawler.getAirlines();
         Thread marketCrawlers = crawler.getMarkets();
