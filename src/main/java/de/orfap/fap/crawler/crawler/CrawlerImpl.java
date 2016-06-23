@@ -62,6 +62,8 @@ public class CrawlerImpl implements Crawler {
     private RouteClient routeClient;
     @Autowired
     Sender<List<Route>> flightSender;
+    @Autowired
+    Sender<List<Route>> routeSender;
 
     @Override
     public Thread getAirlines() throws Exception {
@@ -109,7 +111,7 @@ public class CrawlerImpl implements Crawler {
                 .connect(new SynchronizedQueue<>())
                 .connect(new Collector<>())
                 .connect(new Pipe<>())
-                .connect(sink.use(flightSender));
+                .connect(sink.use(routeSender));
         pump.interrupt();
         sink.interrupt();
         LOG.info("Started RouteCrawlThread for month: " + month);

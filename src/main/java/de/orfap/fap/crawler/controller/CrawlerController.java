@@ -74,27 +74,10 @@ public class CrawlerController {
             Thread flightCrawler = crawler.getFlights(usedYear, i);
             routeCrawlers.add(routeCrawler);
             flightCrawlers.add(flightCrawler);
-            if (i % 4 == 0) {
                 routeCrawler.join();
                 flightCrawler.join();
-            }
+
         }
-        routeCrawlers.forEach(crawler -> {
-            try {
-                crawler.join();
-            } catch (InterruptedException e) {
-                throw new IllegalArgumentException("Not gonna happen");
-            }
-            LOG.info("Routes Crawler " + routeCrawlers.indexOf(crawler) + " of " + routeCrawlers.size() + " terminated");
-        });
-        flightCrawlers.forEach(crawler -> {
-            try {
-                crawler.join();
-            } catch (InterruptedException e) {
-                throw new IllegalArgumentException("Not gonna happen");
-            }
-            LOG.info("Flights Crawler " + flightCrawlers.indexOf(crawler) + " of " + flightCrawlers.size() + " terminated");
-        });
         LOG.info("Crawling of " + year + ", months " + startMonth + "-" + endMonth + " done");
     }
 }
