@@ -12,6 +12,7 @@ import java.util.HashMap;
 /**
  * Created by o4 on 20.06.2016.
  */
+@SuppressWarnings("Duplicates")
 public class AirlineMarketSender<T> extends BaseFilter<T,T> {
     private final HashMap<String, Airline> airlines;
     private final HashMap<String, Airline> usedAirlines;
@@ -36,32 +37,30 @@ public class AirlineMarketSender<T> extends BaseFilter<T,T> {
             if (!usedAirlines.containsKey(keyAirline)) {
                 synchronized (airlines) {
                     if (!usedAirlines.containsKey(keyAirline)) {
-                        airlineClient.create((Airline) airlines.get(keyAirline));
+                        airlineClient.create(airlines.get(keyAirline));
                         usedAirlines.put(keyAirline, airlines.get(keyAirline));
                     }
                 }
             }
             String keySource = ((Route) data).getSource();
-            if (!usedMarkets.containsKey(keySource)) {
-                synchronized (markets) {
-                    if (!usedMarkets.containsKey(keySource)) {
-                        marketClient.create((Market) markets.get(keySource));
-                        usedMarkets.put(keySource, markets.get(keySource));
-                    }
-                }
-            }
+            checkAndCreateMarket(keySource);
+
             String keyDestination = ((Route) data).getDestination();
-            if (!usedMarkets.containsKey(keyDestination)) {
-                synchronized (markets) {
-                    if (!usedMarkets.containsKey(keyDestination)) {
-                        marketClient.create((Market) markets.get(keyDestination));
-                        usedMarkets.put(keyDestination, markets.get(keyDestination));
-                    }
-                }
-            }
+            checkAndCreateMarket(keyDestination);
             return data;
         }
         return null;
+    }
+
+    private void checkAndCreateMarket(String key){
+        if (!usedMarkets.containsKey(key)) {
+            synchronized (markets) {
+                if (!usedMarkets.containsKey(key)) {
+                    marketClient.create(markets.get(key));
+                    usedMarkets.put(key, markets.get(key));
+                }
+            }
+        }
     }
 
     @Override
