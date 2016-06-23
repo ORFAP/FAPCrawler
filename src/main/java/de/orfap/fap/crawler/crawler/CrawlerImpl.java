@@ -15,9 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.Resource;
 
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,10 +31,10 @@ public class CrawlerImpl implements Crawler {
     private final String routeURL = "http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0";
     private final String flightURL = "http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0";
 
-    private final HashMap<String, Market> markets = new HashMap<>();
-    private final Set<String> usedMarkets = new HashSet<>();
-    private final HashMap<String, Airline> airlines = new HashMap<>();
-    private final Set<String> usedAirlines = new HashSet<>();
+    private HashMap<String, Market> markets = new HashMap<>();
+    private Set<String> usedMarkets;
+    private HashMap<String, Airline> airlines = new HashMap<>();
+    private Set<String> usedAirlines;
 
     private final AirlineClient airlineClient;
     private final MarketClient marketClient;
@@ -53,11 +51,15 @@ public class CrawlerImpl implements Crawler {
     @Override
     public Thread getAirlines() throws Exception {
         //AirlinePipe:
-        Collection<Airline> existingAirlines = airlineClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
-        for (Airline airline:existingAirlines
-             ) {
-            usedAirlines.add(airline.getId());
-        }
+        usedAirlines = airlineClient.findAll()
+            .getContent().stream()
+            .map(Resource::getId)
+            .map(idLink -> {
+                String[] split = idLink.toString().split("/");
+                return split[split.length - 1];
+            })
+            .collect(Collectors.toSet());
+
         String airlineFilename = "airlines.csv";
         new Downloader<>(airlineURL, 0, 0, "csv", airlineFilename);
         Pump<String> airlinePump = new Pump<>();
@@ -73,11 +75,15 @@ public class CrawlerImpl implements Crawler {
     @Override
     public Thread getMarkets() throws Exception {
         //MarketPipe:
-        Collection<Market> existingMarkets = marketClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
-        for (Market market:existingMarkets
-                ) {
-            usedMarkets.add(market.getId());
-        }
+        usedMarkets = marketClient.findAll()
+            .getContent().stream()
+            .map(Resource::getId)
+            .map(idLink -> {
+                String[] split = idLink.toString().split("/");
+                return split[split.length - 1];
+            })
+            .collect(Collectors.toSet());
+
         String marketFilename = "markets.csv";
         new Downloader<>(marketURL, 0, 0, "csv", marketFilename);
         Pump<String> marketPump = new Pump<>();
