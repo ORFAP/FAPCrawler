@@ -33,7 +33,7 @@ public class ZipFileStringExtractor extends StringExtractor<ZipFile, String> {
         }
         if (output != null) {
             try {
-                while (!output.matches("[0-9].*") || output.contains(",,")) {
+                while (!output.matches("[0-9].*")) {
                     getLOG().debug("Wrong formatted line in ZipFile: " + output);
                     output = getBr().readLine();
                     if(output==null){

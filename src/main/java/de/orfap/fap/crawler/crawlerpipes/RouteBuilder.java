@@ -20,11 +20,10 @@ public class RouteBuilder extends ResourceBuilder<String, Route> {
         // "YEAR","MONTH","DEPARTURES_SCHEDULED","DEPARTURES_PERFORMED",
         // "PASSENGERS","AIRLINE_ID","ORIGIN_CITY_MARKET_ID",
         // "DEST_CITY_MARKET_ID"
-        output.setDate(Integer.parseInt(columns[0]) + "-" + String.format("%02d", Integer.parseInt(columns[1])) + "-" + "01");
-        output.setCancelled(0);
-        output.setDelays(0);
-        output.setPassengerCount(Double.parseDouble(columns[4]));
-        output.setFlightCount(0);
+        if (columns[0] != null || columns[1] != null || columns[4] != null) {
+            output.setDate(columns[0] + "-" + String.format("%02d", Integer.parseInt(columns[1])) + "-" + "01");
+            output.setPassengerCount(Double.parseDouble(columns[4]));
+        }
         if (isListAble()) {
             output.setAirline(columns[5]);
             output.setSource(columns[6]);

@@ -32,7 +32,7 @@ public class CsvFileStringExtractor extends StringExtractor<File, String> {
         }
         if (output != null) {
             try {
-                while (!output.matches("\"[0-9]{1,1}.*") || output.contains(",,")) {
+                while (!output.matches("\"[0-9]{1,1}.*")) {
                     getLOG().debug("Wrong formatted line in CsvFile: " + output);
                     output = getBr().readLine();
                     if(output==null){
