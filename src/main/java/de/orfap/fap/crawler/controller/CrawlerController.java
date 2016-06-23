@@ -14,8 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-
 /**
  * Created by Arne on 15.05.2016.
  */
@@ -77,18 +75,15 @@ public class CrawlerController {
         airlineCrawlers.join();
         marketCrawlers.join();
 
-        ArrayList<Thread> routeCrawlers = new ArrayList();
-        ArrayList<Thread> flightCrawlers = new ArrayList();
         for (int i = startMonth; i <= endMonth; i++) {
             if (crawler.getRouteClient().isRouteInMonthOfYear(usedYear + "-" + i)) {
                 continue;
             }
             Thread routeCrawler = crawler.getRoutes(usedYear, i);
             Thread flightCrawler = crawler.getFlights(usedYear, i);
-            routeCrawlers.add(routeCrawler);
-            flightCrawlers.add(flightCrawler);
-                routeCrawler.join();
-                flightCrawler.join();
+
+            routeCrawler.join();
+            flightCrawler.join();
 
         }
         LOG.info("Crawling of " + year + ", months " + startMonth + "-" + endMonth + " done");
