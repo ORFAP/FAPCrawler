@@ -55,7 +55,7 @@ public class CrawlerImpl implements Crawler {
             .getContent().stream()
             .map(Resource::getId)
             .map(idLink -> {
-                String[] split = idLink.toString().split("/");
+                String[] split = idLink.getHref().split("/");
                 return split[split.length - 1];
             })
             .collect(Collectors.toSet());
@@ -79,7 +79,7 @@ public class CrawlerImpl implements Crawler {
             .getContent().stream()
             .map(Resource::getId)
             .map(idLink -> {
-                String[] split = idLink.toString().split("/");
+                String[] split = idLink.getHref().split("/");
                 return split[split.length - 1];
             })
             .collect(Collectors.toSet());
