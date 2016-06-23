@@ -60,10 +60,8 @@ public class CrawlerImpl implements Crawler {
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
     private RouteClient routeClient;
-    @Autowired
-    Sender<List<Route>> flightSender;
-    @Autowired
-    Sender<List<Route>> routeSender;
+    private Sender<List<Route>> flightSender=new Sender<>(airlineClient,marketClient,routeClient);
+    private Sender<List<Route>> routeSender=new Sender<>(airlineClient,marketClient,routeClient);
 
     @Override
     public Thread getAirlines() throws Exception {
@@ -141,6 +139,7 @@ public class CrawlerImpl implements Crawler {
         return sink;
     }
 
+    @Override
     public RouteClient getRouteClient() {
         return routeClient;
     }

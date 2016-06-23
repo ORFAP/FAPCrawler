@@ -1,9 +1,9 @@
 package de.orfap.fap.crawler.controller;
 
+import de.orfap.fap.crawler.crawler.Crawler;
 import de.orfap.fap.crawler.crawler.CrawlerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,8 +18,7 @@ import java.util.ArrayList;
 @SuppressWarnings("DefaultFileTemplate")
 @RestController
 public class CrawlerController {
-    @Autowired
-    CrawlerImpl crawler;
+    Crawler crawler = new CrawlerImpl();
     private final Logger LOG = LoggerFactory.getLogger(CrawlerController.class);
     @Value("${fap.backend.basePath}")
     private String basePath;

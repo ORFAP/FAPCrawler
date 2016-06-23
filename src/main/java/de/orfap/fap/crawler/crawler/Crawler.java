@@ -1,6 +1,6 @@
 package de.orfap.fap.crawler.crawler;
 
-import java.util.List;
+import de.orfap.fap.crawler.feign.RouteClient;
 
 /**
  * Created by Arne on 13.04.2016.
@@ -38,4 +38,6 @@ public interface Crawler {
      * @throws Exception
      */
     Thread getFlights(final int usedYear, final int month) throws Exception;
+
+    RouteClient getRouteClient();
 }
