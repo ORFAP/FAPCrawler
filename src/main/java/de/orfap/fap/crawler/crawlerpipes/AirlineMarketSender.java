@@ -8,6 +8,7 @@ import de.orfap.fap.crawler.feign.MarketClient;
 import edu.hm.obreitwi.arch.lab08.BaseFilter;
 
 import java.util.HashMap;
+import java.util.Set;
 
 /**
  * Created by o4 on 20.06.2016.
@@ -15,13 +16,13 @@ import java.util.HashMap;
 @SuppressWarnings("Duplicates")
 public class AirlineMarketSender<T> extends BaseFilter<T,T> {
     private final HashMap<String, Airline> airlines;
-    private final HashMap<String, Airline> usedAirlines;
+    private final Set<String> usedAirlines;
     private final HashMap<String, Market> markets;
-    private final HashMap<String, Market> usedMarkets;
+    private final Set<String> usedMarkets;
     private AirlineClient airlineClient;
     private MarketClient marketClient;
 
-    public AirlineMarketSender(final HashMap<String, Airline> airlines, final HashMap<String, Airline> usedAirlines, final HashMap<String, Market> markets, final HashMap<String, Market> usedMarkets, final AirlineClient airlineClient, final MarketClient marketClient) {
+    public AirlineMarketSender(final HashMap<String, Airline> airlines, final Set<String> usedAirlines, final HashMap<String, Market> markets, final Set<String> usedMarkets, final AirlineClient airlineClient, final MarketClient marketClient) {
         this.airlines = airlines;
         this.usedAirlines = usedAirlines;
         this.markets = markets;
@@ -34,11 +35,11 @@ public class AirlineMarketSender<T> extends BaseFilter<T,T> {
     public T transform(T data) {
         if (data instanceof Route) {
             String keyAirline = ((Route) data).getAirline();
-            if (!usedAirlines.containsKey(keyAirline)) {
+            if (!usedAirlines.contains(keyAirline)) {
                 synchronized (airlines) {
-                    if (!usedAirlines.containsKey(keyAirline)) {
+                    if (!usedAirlines.contains(keyAirline)) {
                         airlineClient.create(airlines.get(keyAirline));
-                        usedAirlines.put(keyAirline, airlines.get(keyAirline));
+                        usedAirlines.add(keyAirline);
                     }
                 }
             }
@@ -53,11 +54,11 @@ public class AirlineMarketSender<T> extends BaseFilter<T,T> {
     }
 
     private void checkAndCreateMarket(String key){
-        if (!usedMarkets.containsKey(key)) {
+        if (!usedMarkets.contains(key)) {
             synchronized (markets) {
-                if (!usedMarkets.containsKey(key)) {
+                if (!usedMarkets.contains(key)) {
                     marketClient.create(markets.get(key));
-                    usedMarkets.put(key, markets.get(key));
+                    usedMarkets.add(key);
                 }
             }
         }

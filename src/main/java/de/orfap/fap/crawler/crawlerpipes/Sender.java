@@ -17,7 +17,6 @@ import java.util.List;
  */
 public class Sender<T> extends BaseConsumer<T> {
     private int numberSendOperations;
-    //Warnings suppressed because of: No beans needed
     private final AirlineClient airlineClient;
     private final MarketClient marketClient;
     private final RouteClient routeClient;

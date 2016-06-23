@@ -25,11 +25,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.hateoas.Resource;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Arne on 13.04.2016.
@@ -45,11 +45,9 @@ public class CrawlerImpl implements Crawler {
     @Value("${fap.backend.basePath}")
     private String basePath;
     private final HashMap<String, Market> markets = new HashMap<>();
-    private final HashMap<String, Market> usedMarkets = new HashMap<>();
+    private final Set<String> usedMarkets = new HashSet<>();
     private final HashMap<String, Airline> airlines = new HashMap<>();
-    private final HashMap<String, Airline> usedAirlines = new HashMap<>();
-    private final ArrayList<Route> routes = new ArrayList<>();
-    private final ArrayList<Route> flights = new ArrayList<>();
+    private final Set<String> usedAirlines = new HashSet<>();
     //Warnings suppressed because of: No beans needed
     @SuppressWarnings("SpringJavaAutowiringInspection")
     @Autowired
@@ -66,6 +64,11 @@ public class CrawlerImpl implements Crawler {
     @Override
     public Thread getAirlines() throws Exception {
         //AirlinePipe:
+        Collection<Airline> existingAirlines = airlineClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
+        for (Airline airline:existingAirlines
+             ) {
+            usedAirlines.add(airline.getId());
+        }
         String airlineFilename = "airlines.csv";
         new Downloader<>(airlineURL, 0, 0, "csv", airlineFilename);
         Pump<String> airlinePump = new Pump<>();
@@ -81,6 +84,11 @@ public class CrawlerImpl implements Crawler {
     @Override
     public Thread getMarkets() throws Exception {
         //MarketPipe:
+        Collection<Market> existingMarkets = marketClient.findAll().getContent().stream().map(Resource::getContent).collect(Collectors.toList());
+        for (Market market:existingMarkets
+                ) {
+            usedMarkets.add(market.getId());
+        }
         String marketFilename = "markets.csv";
         new Downloader<>(marketURL, 0, 0, "csv", marketFilename);
         Pump<String> marketPump = new Pump<>();
