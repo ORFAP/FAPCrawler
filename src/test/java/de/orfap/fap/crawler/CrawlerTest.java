@@ -4,31 +4,35 @@ import de.orfap.fap.crawler.crawler.Crawler;
 import de.orfap.fap.crawler.crawler.CrawlerImpl;
 import de.orfap.fap.crawler.domain.Airline;
 import de.orfap.fap.crawler.domain.Market;
-import de.orfap.fap.crawler.domain.Route;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Arne on 13.06.2016.
  */
+@RunWith(SpringJUnit4ClassRunner.class)
 public class CrawlerTest {
 
+//    @Autowired
     private static Crawler crawler;
-
 
     private static List<Market> markets;
     private static List<Airline> airlines;
-    private static List<Route> routes;
 
     @BeforeClass
     public static void before() throws Exception {
-        crawler = new CrawlerImpl();
-        airlines = crawler.getAirlines("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID");
-        markets = crawler.getMarkets("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID");
-        routes = crawler.getRoutes("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0", 2015);
+        /*crawler = new CrawlerImpl(null,null,null,null);
+        crawler.getAirlines();
+        crawler.getMarkets();
+        airlines = new ArrayList<>(crawler.getAirlineList().values());
+        markets = new ArrayList<>(crawler.getMarketList().values());*/
     }
 
     @Test
@@ -49,7 +53,7 @@ public class CrawlerTest {
         }
     }
 
-    @Test
+    /*@Test
     public void parseRoutessTest(){
         for (Route route : routes){
             Assert.assertNotNull(route);
@@ -63,5 +67,5 @@ public class CrawlerTest {
             Assert.assertTrue(route.getCancelled()>=0);
             Assert.assertTrue(route.getCancelled()<=route.getFlightCount());
         }
-    }
+    }*/
 }
