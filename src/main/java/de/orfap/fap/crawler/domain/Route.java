@@ -13,7 +13,7 @@ public class Route {
 
     @NotNull
     @Past
-    private Date date;
+    private String date;
 
     @Min(0)
     private double delays;
@@ -39,7 +39,7 @@ public class Route {
     public Route() {
     }
 
-    public Route(Date date, double delays, double cancelled, double passengerCount, double flightCount, String airline, String source, String destination) {
+    public Route(String date, double delays, double cancelled, double passengerCount, double flightCount, String airline, String source, String destination) {
         this.date = date;
         this.delays = delays;
         this.cancelled = cancelled;
@@ -50,11 +50,11 @@ public class Route {
         this.destination = destination;
     }
 
-    public Date getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(String date) {
         this.date = date;
     }
 

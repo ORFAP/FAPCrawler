@@ -1,16 +1,10 @@
 package de.orfap.fap.crawler.controller;
 
 import de.orfap.fap.crawler.crawler.Crawler;
-import de.orfap.fap.crawler.crawlerpipes.Collector;
-import de.orfap.fap.crawler.crawlerpipes.Downloader;
-import de.orfap.fap.crawler.crawlerpipes.ResourceBuilder;
-import de.orfap.fap.crawler.crawlerpipes.Sender;
-import de.orfap.fap.crawler.crawlerpipes.Unzipper;
-import de.orfap.fap.crawler.domain.Route;
-import edu.hm.obreitwi.arch.lab08.Pipe;
-import edu.hm.obreitwi.arch.lab08.Pump;
-import edu.hm.obreitwi.arch.lab08.Sink;
-import edu.hm.obreitwi.arch.lab08.SynchronizedQueue;
+import de.orfap.fap.crawler.crawler.CrawlerImpl;
+import de.orfap.fap.crawler.feign.AirlineClient;
+import de.orfap.fap.crawler.feign.MarketClient;
+import de.orfap.fap.crawler.feign.RouteClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,22 +14,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by Arne on 15.05.2016.
  */
 @SuppressWarnings("DefaultFileTemplate")
 @RestController
 public class CrawlerController {
-    @Autowired
-    Sender<List<Route>> flightSender;
-    @Autowired
-    Crawler crawler;
+
     private final Logger LOG = LoggerFactory.getLogger(CrawlerController.class);
     @Value("${fap.backend.basePath}")
     private String basePath;
+
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private AirlineClient airlineClient;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private MarketClient marketClient;
+    @SuppressWarnings("SpringJavaAutowiringInspection")
+    @Autowired
+    private RouteClient routeClient;
 
     @RequestMapping(value = "/crawlIntoBackend", method = RequestMethod.GET)
     public void crawlIntoBackend(@Param("year") String year, @Param("month") String month) throws Exception {
@@ -70,44 +68,23 @@ public class CrawlerController {
             throw new IllegalArgumentException("year/month must be a numerical value");
         }
 
-        //Airlines, Markets and Routes only get crawled if startmonth = 1!
-        if (startMonth == 1) {
-            crawler.getAirlines("http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID");
-            crawler.getMarkets("http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID");
-            crawler.getRoutes("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0", usedYear);
-            crawler.sendDataToBackend();
-        }
+        Crawler crawler = new CrawlerImpl(airlineClient, marketClient, routeClient, basePath);
 
-        //FlightPipe:
-        ArrayList<Pump<String>> pumps = new ArrayList();
-        ArrayList<Sink<List<Route>>> sinks = new ArrayList();
+        Thread airlineCrawlers = crawler.getAirlines();
+        Thread marketCrawlers = crawler.getMarkets();
+        airlineCrawlers.join();
+        marketCrawlers.join();
+
         for (int i = startMonth; i <= endMonth; i++) {
-            pumps.add(new Pump<>());
-            sinks.add(new Sink<>());
-        }
-        for (int i = startMonth; i <= endMonth; i++) {
-            String filename = "flights-" + usedYear + "-" + i + ".zip";
-            String downloadfileType = "zip";
-            new Downloader<>("http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0", usedYear, i, downloadfileType, filename);
-            ResourceBuilder<String, Route> rbsf = new ResourceBuilder<>("", new Route(), true, basePath);
-            pumps.get(i - startMonth).use(new Unzipper<>(downloadfileType, filename, ""))
-                    .connect(new Pipe<>())
-                    .connect(rbsf)
-                    .connect(new SynchronizedQueue<>())
-                    .connect(new Collector<>())
-                    .connect(new Pipe<>())
-                    .connect(sinks.get(i - startMonth).use(flightSender));
-            pumps.get(i - startMonth).interrupt();
-            sinks.get(i - startMonth).interrupt();
-            LOG.info("Started FlightCrawlThread#" + i);
-            if ((i - startMonth) % 4 == 0) {
-                LOG.info("Waiting for FlightCrawlThread#"+i);
-                pumps.get(i - startMonth).join();
+            if (crawler.getRouteClient().isRouteInMonthOfYear(usedYear + "-" + i)) {
+                continue;
             }
-        }
-        for (int i = 0; i < sinks.size(); i++) {
-            sinks.get(i).join();
-            LOG.info("Sink " + (i + 1) + " von " + sinks.size() + " beendet");
+            Thread routeCrawler = crawler.getRoutes(usedYear, i);
+            Thread flightCrawler = crawler.getFlights(usedYear, i);
+
+            routeCrawler.join();
+            flightCrawler.join();
+
         }
         LOG.info("Crawling of " + year + ", months " + startMonth + "-" + endMonth + " done");
     }

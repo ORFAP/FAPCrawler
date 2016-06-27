@@ -35,4 +35,7 @@ public interface RouteClient {
     @RequestMapping(method = RequestMethod.GET, value = "/routes", consumes = "application/json")
     Resources<Resource<Route>> findAll();
 
+    @RequestMapping(method = RequestMethod.GET, value = "/routes/search/isRouteInMonthOfYear")
+    Boolean isRouteInMonthOfYear(@RequestParam("date") String date);
+
 }
