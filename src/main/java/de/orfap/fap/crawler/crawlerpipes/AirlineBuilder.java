@@ -22,6 +22,11 @@ public class AirlineBuilder extends ResourceBuilder<String, Airline> {
             if (name.contains("(Merged")) {
                 name = name.substring(0, name.indexOf("(Merged")).trim();
             }
+            //Remove d/b/a (doing business as, alias names for Airlines)
+            if (name.contains("d/b/a")){
+                name = name.substring(0, name.indexOf("d/b/a")).trim();
+                name=name+":"+columns[1].split(":")[1];
+            }
             output = new Airline(name, columns[0].replaceAll("\"", ""));
         } else {
             output = new Airline("", "");

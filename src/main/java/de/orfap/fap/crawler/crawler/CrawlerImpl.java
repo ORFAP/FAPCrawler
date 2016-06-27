@@ -61,7 +61,7 @@ public class CrawlerImpl implements Crawler {
             .collect(Collectors.toSet());
 
         String airlineFilename = "airlines.csv";
-//        new Downloader<>(airlineURL, 0, 0, "csv", airlineFilename);
+        new Downloader<>(airlineURL, 0, 0, "csv", airlineFilename);
         Pump<String> airlinePump = new Pump<>();
         airlinePump.use(new CsvFileStringExtractor(airlineFilename))
                 .connect(new Pipe<>())
@@ -85,7 +85,7 @@ public class CrawlerImpl implements Crawler {
             .collect(Collectors.toSet());
 
         String marketFilename = "markets.csv";
-//        new Downloader<>(marketURL, 0, 0, "csv", marketFilename);
+        new Downloader<>(marketURL, 0, 0, "csv", marketFilename);
         Pump<String> marketPump = new Pump<>();
         marketPump.use(new CsvFileStringExtractor(marketFilename))
                 .connect(new Pipe<>())
@@ -103,7 +103,7 @@ public class CrawlerImpl implements Crawler {
         Sink<List<Route>> sink = new Sink<>();
         String routeFilename = "routes-" + usedYear + "-" + month + ".zip";
         String downloadfileType = "zip";
-//        new Downloader<>(routeURL, usedYear, month, downloadfileType, routeFilename);
+        new Downloader<>(routeURL, usedYear, month, downloadfileType, routeFilename);
         pump.use(new ZipFileStringExtractor(routeFilename))
                 .connect(new Pipe<>())
                 .connect(new RouteBuilder(true, basePath))
@@ -128,7 +128,7 @@ public class CrawlerImpl implements Crawler {
         Sink<List<Route>> sink = new Sink<>();
         String flightFilename = "flights-" + usedYear + "-" + month + ".zip";
         String downloadfileType = "zip";
-//        new Downloader<>(flightURL, usedYear, month, downloadfileType, flightFilename);
+        new Downloader<>(flightURL, usedYear, month, downloadfileType, flightFilename);
         pump.use(new ZipFileStringExtractor(flightFilename))
                 .connect(new Pipe<>())
                 .connect(new FlightBuilder(true, basePath))
