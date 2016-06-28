@@ -20,18 +20,21 @@ public class FlightBuilder extends ResourceBuilder<String, Route> {
         double delay = 0;
         // "DAY_OF_WEEK","FL_DATE","AIRLINE_ID","ORIGIN_CITY_MARKET_ID"
         // "DEST_CITY_MARKET_ID","ARR_DELAY_NEW","CANCELLED"
-        output.setDate(columns[1]);
-        output.setCancelled(Double.parseDouble(columns[6]));
-        //Cancelled Flights have empty arr delay fields
-        if (Double.parseDouble(columns[6]) == 0) {
-            //Some arr delay fields are empty
-            if (!columns[5].isEmpty()) {
-                delay = Double.parseDouble(columns[5]);
-            }
-            output.setDelays(delay);
+        if (columns[1] != null || columns[6] != null) {
+            output.setDate(columns[1]);
+            output.setCancelled(Double.parseDouble(columns[6]));
         }
-        output.setPassengerCount(0);
-        output.setFlightCount(1);
+        //Cancelled Flights have empty arr delay fields
+        if (columns[6] != null) {
+            if (Double.parseDouble(columns[6]) == 0) {
+                //Some arr delay fields are empty
+                if (!columns[5].isEmpty()) {
+                    delay = Double.parseDouble(columns[5]);
+                }
+                output.setDelays(delay);
+                output.setFlightCount(1);
+            }
+        }
         if (isListAble()) {
             output.setAirline(columns[2]);
             output.setSource(columns[3]);

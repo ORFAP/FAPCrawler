@@ -21,17 +21,25 @@ public class Sender<T> extends BaseConsumer<T> {
     private final MarketClient marketClient;
     private final RouteClient routeClient;
     private final Logger LOG = LoggerFactory.getLogger(Sender.class);
+    private final boolean isRouteSender;
 
-    public Sender(AirlineClient airlineClient, MarketClient marketClient, RouteClient routeClient) {
+    public Sender(final AirlineClient airlineClient, final MarketClient marketClient, final RouteClient routeClient, final boolean isROuteSender) {
         this.airlineClient = airlineClient;
         this.marketClient = marketClient;
         this.routeClient = routeClient;
+        this.isRouteSender = isROuteSender;
     }
 
     @Override
     public void accept(T data) {
         if (data == null) {
-            LOG.info("Sent " + numberSendOperations + " Flights to Backend");
+            String type = "";
+            if (isRouteSender) {
+                type = "Routes";
+            } else {
+                type = "Fights";
+            }
+            LOG.info("Sent " + numberSendOperations + " " + type + " to Backend");
             return;
         }
         if (data instanceof Airline && !(((Airline) data).getId().isEmpty() || ((Airline) data).getName().isEmpty())) {

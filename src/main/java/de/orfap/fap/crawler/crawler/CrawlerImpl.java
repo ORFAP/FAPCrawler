@@ -52,13 +52,13 @@ public class CrawlerImpl implements Crawler {
     public Thread getAirlines() throws Exception {
         //AirlinePipe:
         usedAirlines = airlineClient.findAll()
-            .getContent().stream()
-            .map(Resource::getId)
-            .map(idLink -> {
-                String[] split = idLink.getHref().split("/");
-                return split[split.length - 1];
-            })
-            .collect(Collectors.toSet());
+                .getContent().stream()
+                .map(Resource::getId)
+                .map(idLink -> {
+                    String[] split = idLink.getHref().split("/");
+                    return split[split.length - 1];
+                })
+                .collect(Collectors.toSet());
 
         String airlineFilename = "airlines.csv";
         new Downloader<>(airlineURL, 0, 0, "csv", airlineFilename);
@@ -76,13 +76,13 @@ public class CrawlerImpl implements Crawler {
     public Thread getMarkets() throws Exception {
         //MarketPipe:
         usedMarkets = marketClient.findAll()
-            .getContent().stream()
-            .map(Resource::getId)
-            .map(idLink -> {
-                String[] split = idLink.getHref().split("/");
-                return split[split.length - 1];
-            })
-            .collect(Collectors.toSet());
+                .getContent().stream()
+                .map(Resource::getId)
+                .map(idLink -> {
+                    String[] split = idLink.getHref().split("/");
+                    return split[split.length - 1];
+                })
+                .collect(Collectors.toSet());
 
         String marketFilename = "markets.csv";
         new Downloader<>(marketURL, 0, 0, "csv", marketFilename);
@@ -108,11 +108,13 @@ public class CrawlerImpl implements Crawler {
                 .connect(new Pipe<>())
                 .connect(new RouteBuilder(true, basePath))
                 .connect(new Pipe<>())
+                .connect(new FlightFilter())
+                .connect(new Pipe<>())
                 .connect(new AirlineMarketSender<>(airlines, usedAirlines, markets, usedMarkets, airlineClient, marketClient))
                 .connect(new SynchronizedQueue<>())
                 .connect(new Collector<>())
                 .connect(new Pipe<>())
-                .connect(sink.use(new Sender<>(airlineClient,marketClient,routeClient)));
+                .connect(sink.use(new Sender<>(airlineClient, marketClient, routeClient, true)));
         pump.interrupt();
         sink.interrupt();
         LOG.info("Started RouteCrawlThread for month: " + month);
@@ -131,11 +133,13 @@ public class CrawlerImpl implements Crawler {
                 .connect(new Pipe<>())
                 .connect(new FlightBuilder(true, basePath))
                 .connect(new Pipe<>())
+                .connect(new FlightFilter())
+                .connect(new Pipe<>())
                 .connect(new AirlineMarketSender<>(airlines, usedAirlines, markets, usedMarkets, airlineClient, marketClient))
                 .connect(new SynchronizedQueue<>())
                 .connect(new Collector<>())
                 .connect(new Pipe<>())
-                .connect(sink.use(new Sender<>(airlineClient,marketClient,routeClient)));
+                .connect(sink.use(new Sender<>(airlineClient, marketClient, routeClient, false)));
         pump.interrupt();
         sink.interrupt();
         LOG.info("Started FlightCrawlThread for month: " + month);
