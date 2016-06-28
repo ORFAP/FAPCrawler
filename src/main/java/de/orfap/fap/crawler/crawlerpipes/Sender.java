@@ -37,7 +37,7 @@ public class Sender<T> extends BaseConsumer<T> {
             if (isRouteSender) {
                 type = "Routes";
             } else {
-                type = "Fights";
+                type = "Flights";
             }
             LOG.info("Sent " + numberSendOperations + " " + type + " to Backend");
             return;
