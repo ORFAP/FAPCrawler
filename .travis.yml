@@ -5,17 +5,17 @@ services:
 jdk: oraclejdk8
 install: gradle assemble
 script: gradle check
-
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
-  - docker login -e $DOCKER_EMAIL -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-  - export REPO=arne2/fapcrawler
-  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
-  - docker build -f dockerfile -t $REPO:$COMMIT .
-  - docker tag $REPO:$COMMIT $REPO:$TAG
-  - docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
-  - if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then docker push $REPO ; fi
-
+- bash <(curl -s https://codecov.io/bash)
+- docker login -e $DOCKER_EMAIL -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+- export REPO=arne2/fapcrawler
+- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH
+  ; fi`
+- docker build -f dockerfile -t $REPO:$COMMIT .
+- docker tag $REPO:$COMMIT $REPO:$TAG
+- docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
+- if [ "$TRAVIS_BRANCH" == "master" ] && [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
+  docker push $REPO ; fi
 notifications:
   email: false
 env:
@@ -23,6 +23,11 @@ env:
   - secure: AHUVOmwk1WSTgfuAKnE2dvPC3caZA1+9etLfyTl5NwWOW2kmfPY6Lr1rZbZmLQG0kQ6hYECkVpKDINbLGMKMMnB2fwOjk4/FebQGwBc77axELDEtDa3vemhssGY7UBOCC+C7hhPKgkkiHgjvZmA6J0HtiQFtN3ucjzqOK6nwIBMHCXhB7NW/+/3FWAA17QwX4yIPaLDiJSJ3yMUKZ3pn7C9RWR28A6T/WgvJZnHBohMGxQaWV/E/vEAsjklPUypCtClZ/JcNAAUx+awVpPcWZn7rrmBufSjh5+kz2IQsdCgnVc20uuv1HDT6P/a+1yGj6zKW1epaV0G2/sh9cOFZb/djIDHaRIhHaNLJVmgf5gVFSgNJXTLZWkbDo1EMRH1RtHpbvt1PePj61qsJ2QNaF+UUlT2yzgU/dCKAxBUvNiEuxc0rhV3o/DJhGVNOn/XixQqDdnudtQE887KzlAmpoDdGT6sUk3Bj31nCKZYwIVHa2OPAg6lH+5dyKUXGqgSDrF3BP+iUye01ZNM/eNle9pJNNEb9lc5RgD+7ZcJLKt7MqiP+YWCYRYV4nkNYV+GMVnF4vfZFx9JgEehyPbIlKkmrV8h+8NNE5Kq7D40vQeGaSbM+MnbPkqJVCo4dq+qQJGIhcNlA+eNbOFecsniRZyG+Y3uPtPrqkb3FW8KMYaA=
   - secure: WXpK7sVZP9hR2m2m5L7rGmJJPYE3hYe1XKgPMZUYRZfPaxKsbJQl5X1zmUpjXCLwB1Qbm7iBkVdT/AXyKwc3ukcxT8aSRU/qAXtTFQl5uUQnq4kLb4Uex6zitO6ZACwVtNObKI3XZ+YiMxLZdIbYryfLUNokRZiSdgq8XpTbMpdLFbXHJBhQri//JxxvMIpfu8ngpowS6AEXhAqGO5gtiaNpPaIR41+ZQXL3JzdatJvazYRanPskBRGf4qxTPm1O0ubMWGtOI4gwp7YWRRq05bmrWUCSnGlWRUpDQ9Yh3+34hzTfrHL43TqrYq2KzaIE7bOsN71Jg7rrqs6QbJJh5wT9BSVwNL3xpP5HGwOiATeTgnnLaVmFTh3w3F+1C1WM1X0xLRIc6zDlawsJTA+uUnlOHo/NpCLjo8f72T8oB+PgNMp8Y0t4jpSGRg3USwS3W97/1u4mUM7dNWLpsBImklXsE2YkGN2Is6RD9gUl6k7aW+Ap7s0gPDZTH34JtBwT7z5paSEPaWlwBdmq4suHekOYmrTsKAkzoKFdpkFP3sw8016AYQEzCzCj6EIUJ+Gav1UVgc7jUUUKSjbF5sRX7EpSlX19q17rkO8dS5CFOKGGQdM0G9JpvfNUnn+FGSUi8tB+Ssr3u6Lwuv3HEODIa41DRnoqt4th/So/nU74Q20=
   - secure: vc3kE55AQF/y0xjBndjziIrKWFkuBYlLM3WAcYEQkGvMmyl54gI5ecFlgAXuiwXAU8olaEt5B6bRkG35AzuCar9OL44zpRlGpjVpVqjLx9nuAb6ART6u1pJnMZv75PrVqQhNylpPrPJeVqnOBr4zXRSdbyc7X6ZEP6H/oaNBa1S23acq8wGn9hNyGtq5n9UN0inL9nEQLSyhFQRrnkqQ2I1mkgtBEJ2K+k9pnEYi5Mv8kDnExZwKVJjZxUpX1cz0k89VBQJlweNytg9aXiqGiSxrCU9zjbbWrzDkVw5lJeY9bxpXkORysL53c3PZcF4PfPvdIqHyQmrSQ2OdA4H+yrQA7yzN/u/vK36FdYNJXHZAwUhtqSkmGqyAeSA8JuVXEB6JX13NvIzUkHcbntu1MlQbU97Tif+lhN6CY1hDkw876Who74yWX/YJnqUg6zPgjD68CdLXDNejJmTdsZcZ0M72mqJqFO4GN1i/XDZ5vQaLMiJhJpAhEf4wOkU/5zDlHlyATW1/e2sEi6Dp35XaJ/L+2J9vXUPDr4iiLQsgHBVKCgUDQQLqJRynRhSZT1RCKm1/3u5v+7+jzL9rqHjFYIqnr7eLIXHStB3pCYl9g6qMpHAymXBaJ3Z7Xoiw4ACZtGoYRLKoVHhTpJUmdoRc8hyI1mqAMFZ2pptw3OReswE=
-
-
-
+deploy:
+  provider: heroku
+  app: orfap-crawler
+  on:
+    branch: master
+    repo: ORFAP/FAPCrawler
+  api_key:
+    secure: TeBEnApSLNQ2kkfU0eS4ERcvVOcQJiOZt0Y0oLpT4mUo/l0i11YuzyeAjSCK2jj7uZzUG4skm46QGiQid4rhGWY05NIJJKDQGgcIuluz/ESuWhnTyA8FJXDH6Zg6jJ7+gm80+giQq8Dqvi6khh9FPhEQdF817BIBS454Wf5E5qkm60cO0Bz7ZuIqwT2d9n5crnKBNAoXFWrE10/Xx5hjWY3lOob8BVH0cjyoJ+aV7RFppRpc1u6pLnrPpq1oCoBjYlXAyany5CLu0P/Om5wtBY/0yNRRlNzqh/zFC/AGB19CaKQM7+FAk79tXVm6UAsRL155o7eOH6FzXGHAADK4qz+ODojVIPuZ4W40tEdOIHR37XPnlakHQFwNSMpWbeFHEQfm759fTevn36gIemFhhPNiDFZywMfejel9CdbSan52EDJQ5OPdopvCAttKUkPqPqVwi/hkil4w0jksR865+CNRRxEZnieQNkQxfOJwAJ0vRUVR5j0H/yFMaFDSTC6p+Q5dzishtRLg0L5vM2ZAXFYcMBcor5X/oORrhEOcT7OSG21MBCFNLXJy470soThtvHKJmNg23gtZOniqmQ0/2BWPrU7gx0UZBFRQxyq1NPRqgE4HY26NdBHFQ/7+dWaHrDx+IL8/XXZ5Fl8rdKV0rlQ5KHwFdMMTCeUAxBQCXyc=
