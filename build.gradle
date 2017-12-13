@@ -4,6 +4,8 @@ buildscript {
 	}
 	repositories {
 		mavenCentral()
+		maven { url "https://repo.spring.io/snapshot" }
+		maven { url "https://repo.spring.io/milestone" }
 	}
 	dependencies {
 		classpath("io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE")
@@ -13,8 +15,9 @@ buildscript {
 
 apply plugin: 'java'
 apply plugin: 'eclipse'
-apply plugin: 'jacoco'
+apply plugin: 'idea'
 apply plugin: 'spring-boot'
+apply plugin: 'jacoco'
 
 jar {
 	baseName = 'FAPCrawler'
@@ -29,6 +32,14 @@ repositories {
 	maven { url "https://repo.spring.io/milestone" }
 }
 
+configurations {
+	provided
+}
+sourceSets {
+	main {
+		compileClasspath += configurations.provided
+	}
+}
 
 dependencies {
 	compile('org.springframework.cloud:spring-cloud-starter-feign')
@@ -40,12 +51,14 @@ dependencies {
 	compile 'com.netflix.feign:feign-jackson:8.16.2'
 }
 
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.cloud:spring-cloud-dependencies:Brixton.RC2"
+jacocoTestReport {
+	reports {
+		xml.enabled = true
+		html.enabled = true
 	}
 }
 
+check.dependsOn jacocoTestReport
 
 eclipse {
 	classpath {
@@ -57,12 +70,3 @@ eclipse {
 task wrapper(type: Wrapper) {
 	gradleVersion = '2.12'
 }
-
-jacocoTestReport {
-	reports {
-		xml.enabled = true
-		html.enabled = true
-	}
-}
-
-check.dependsOn jacocoTestReport
