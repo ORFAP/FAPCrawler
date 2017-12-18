@@ -35,18 +35,46 @@ public class Downloader<T> extends BaseProducer<T> {
                 conn.setRequestMethod("POST");
                 if (filename.contains("route")) {
                     setReqPropT100D(conn, year, month);
-                } else if (filename.contains("flight")){
+                } else if (filename.contains("flight")) {
                     setReqPropONTIME(conn, year, month);
-                } else{
+                } else {
                     LOG.error("Unknown filename");
                     throw new IllegalArgumentException("Unknown filename");
                 }
-                Files.copy(conn.getInputStream(), Paths.get(filename));
+                handleRedirectAndDownloadZIP(conn, filename);
             }
             LOG.info("File " + filename + " downloaded");
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void handleRedirectAndDownloadZIP(HttpURLConnection conn, String filename) throws IOException {
+        boolean redirect = false;
+        // normally, 3xx is redirect
+        int status = conn.getResponseCode();
+        if (status != HttpURLConnection.HTTP_OK) {
+            if (status == HttpURLConnection.HTTP_MOVED_TEMP
+                    || status == HttpURLConnection.HTTP_MOVED_PERM
+                    || status == HttpURLConnection.HTTP_SEE_OTHER)
+                redirect = true;
+        }
+        if (redirect) {
+            // get redirect url from "location" header field
+            String newUrl = conn.getHeaderField("Location");
+            // get the cookie if need, for login
+            String cookies = conn.getHeaderField("Set-Cookie");
+
+            // open the new connnection again
+            conn = (HttpURLConnection) new URL(newUrl).openConnection();
+            conn.setRequestProperty("Cookie", cookies);
+
+            System.out.println("Redirect to URL : " + newUrl);
+
+        }
+
+        LOG.info("downloading zip-file...");
+        Files.copy(conn.getInputStream(), Paths.get(filename));
     }
 
     @Override

@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
 @SuppressWarnings({"ALL", "DefaultFileTemplate"})
 public class CrawlerImpl implements Crawler {
     private final Logger LOG = LoggerFactory.getLogger(CrawlerImpl.class);
-    private final String airlineURL = "http://transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID";
-    private final String marketURL = "http://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID";
-    private final String routeURL = "http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0";
-    private final String flightURL = "http://transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0";
+    private final String airlineURL = "https://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_AIRLINE_ID";
+    private final String marketURL = "https://www.transtats.bts.gov/Download_Lookup.asp?Lookup=L_CITY_MARKET_ID";
+    private final String routeURL = "https://www.transtats.bts.gov/DownLoad_Table.asp?Table_ID=311&Has_Group=3&Is_Zipped=0";
+    private final String flightURL = "https://www.transtats.bts.gov/DownLoad_Table.asp?Table_ID=236&Has_Group=3&Is_Zipped=0";
 
     private HashMap<String, Market> markets = new HashMap<>();
     private Set<String> usedMarkets;
