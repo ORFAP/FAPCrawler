@@ -41,11 +41,21 @@ public class CrawlerImpl implements Crawler {
     private final RouteClient routeClient;
     private final String basePath;
 
-    public CrawlerImpl(AirlineClient airlineClient, MarketClient marketClient, RouteClient routeClient, String basePath) {
+    private final String airlineFilename;
+    private final String marketFilename;
+    private final String routeFilename;
+    private final String flightFilename;
+
+    public CrawlerImpl(AirlineClient airlineClient, MarketClient marketClient, RouteClient routeClient, String basePath, String threadID) {
         this.airlineClient = airlineClient;
         this.marketClient = marketClient;
         this.routeClient = routeClient;
         this.basePath = basePath;
+
+        this.airlineFilename = threadID + "airlines.csv";
+        this.marketFilename = threadID + "markets.csv";
+        this.routeFilename = threadID + "routes.zip";
+        this.flightFilename = threadID + "flights.zip";
     }
 
     @Override
@@ -60,7 +70,6 @@ public class CrawlerImpl implements Crawler {
                 })
                 .collect(Collectors.toSet());
 
-        String airlineFilename = "airlines.csv";
         new Downloader<>(airlineURL, 0, 0, "csv", airlineFilename);
         Pump<String> airlinePump = new Pump<>();
         airlinePump.use(new CsvFileStringExtractor(airlineFilename))
@@ -84,7 +93,6 @@ public class CrawlerImpl implements Crawler {
                 })
                 .collect(Collectors.toSet());
 
-        String marketFilename = "markets.csv";
         new Downloader<>(marketURL, 0, 0, "csv", marketFilename);
         Pump<String> marketPump = new Pump<>();
         marketPump.use(new CsvFileStringExtractor(marketFilename))
@@ -101,7 +109,6 @@ public class CrawlerImpl implements Crawler {
         //RoutePipe:
         Pump<String> pump = new Pump<>();
         Sink<List<Route>> sink = new Sink<>();
-        String routeFilename = "routes-" + usedYear + "-" + month + ".zip";
         String downloadfileType = "zip";
         new Downloader<>(routeURL, usedYear, month, downloadfileType, routeFilename);
         pump.use(new ZipFileStringExtractor(routeFilename))
@@ -126,7 +133,6 @@ public class CrawlerImpl implements Crawler {
         //FlightPipe:
         Pump<String> pump = new Pump<>();
         Sink<List<Route>> sink = new Sink<>();
-        String flightFilename = "flights-" + usedYear + "-" + month + ".zip";
         String downloadfileType = "zip";
         new Downloader<>(flightURL, usedYear, month, downloadfileType, flightFilename);
         pump.use(new ZipFileStringExtractor(flightFilename))

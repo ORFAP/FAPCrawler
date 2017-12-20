@@ -2,6 +2,7 @@ package de.orfap.fap.crawler.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.jackson.JacksonDecoder;
@@ -23,22 +24,23 @@ import org.springframework.hateoas.hal.Jackson2HalModule;
 @Configuration
 public class FeignConfiguration {
 
-    private final ObjectMapper mapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .registerModule(new Jackson2HalModule());
-
-
     @Bean
-    @ConditionalOnMissingBean
-    Encoder getFeignEncoder() {
-
-        return new JacksonEncoder(mapper);
+    ObjectMapper objectMapper() {
+        return new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+                .registerModule(new Jackson2HalModule());
     }
 
     @Bean
     @ConditionalOnMissingBean
-    Decoder getFeignDecoder() {
+    Encoder getFeignEncoder(ObjectMapper objectMapper) {
+        return new JacksonEncoder(objectMapper);
+    }
 
-        return new JacksonDecoder(mapper);
+    @Bean
+    @ConditionalOnMissingBean
+    Decoder getFeignDecoder(ObjectMapper objectMapper) {
+        return new JacksonDecoder(objectMapper);
     }
 }
