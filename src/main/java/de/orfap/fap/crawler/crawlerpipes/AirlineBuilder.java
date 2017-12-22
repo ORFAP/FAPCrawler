@@ -25,7 +25,8 @@ public class AirlineBuilder extends ResourceBuilder<String, Airline> {
             //Remove d/b/a (doing business as, alias names for Airlines)
             if (name.contains("d/b/a")){
                 name = name.substring(0, name.indexOf("d/b/a")).trim();
-                name=name+":"+columns[1].split(":")[1];
+                final int index = columns.length - 1;
+                name=name+":"+columns[index].split(":")[1];
             }
             output = new Airline(name, columns[0].replaceAll("\"", ""));
         } else {

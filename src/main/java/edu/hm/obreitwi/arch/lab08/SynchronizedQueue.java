@@ -46,7 +46,7 @@ public class SynchronizedQueue<T> extends Pipe<T> {
     public T pull() {
         T output = null;
         try {
-            output = buffer.poll(1, TimeUnit.SECONDS);
+            output = buffer.poll(100, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
